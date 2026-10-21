@@ -8,6 +8,8 @@ ENV DEBIAN_FRONTEND=noninteractive
 # Docker CLI, GitHub CLI and Tailscale come from their vendors' apt repos.
 # Tailscale is preinstalled so Unraid's "Use Tailscale" hook skips its own
 # download on every start; the hook only needs jq and the two binaries.
+# The lib* packages are Electron libraries Orca's deb does not declare, taken
+# from Orca's headless Linux guide.
 RUN set -eux; \
     test -n "${ORCA_VERSION}"; \
     apt-get update; \
@@ -23,7 +25,11 @@ RUN set -eux; \
     apt-get update; \
     apt-get install -y --no-install-recommends \
       /tmp/orca.deb docker-ce-cli gh tailscale libvirt-clients \
-      git openssh-client tini xz-utils; \
+      git openssh-client tini xz-utils \
+      libgtk-3-0t64 libnss3 libatk1.0-0t64 libatk-bridge2.0-0t64 libgbm1 libasound2t64 \
+      libxtst6 libcups2t64 libdrm2 libxkbcommon0 libpango-1.0-0 libcairo2 libatspi2.0-0t64 \
+      libxcomposite1 libxdamage1 libxfixes3 libxrandr2 libxrender1 libx11-xcb1 \
+      libxcb-dri3-0 libxss1; \
     rm -rf /tmp/orca.deb /var/lib/apt/lists/*; \
     orca-ide --version
 
