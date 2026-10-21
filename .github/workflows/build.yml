@@ -76,8 +76,8 @@ jobs:
       - name: Agents can use a mapped Docker socket
         run: docker run --rm -v /var/run/docker.sock:/var/run/docker.sock unraid-orca:test docker ps
 
-      - name: omp runs on the bundled Bun
-        run: docker run --rm -e NPM_PACKAGES=@oh-my-pi/pi-coding-agent unraid-orca:test omp --version
+      - name: Agent names install their npm packages, and omp runs on Bun
+        run: docker run --rm -e AGENTS='OMP, claude' unraid-orca:test sh -c 'omp --version && claude --version'
 
       - name: Server starts, serves the web client, adds GIT_REPOS and opens zsh terminals
         run: |

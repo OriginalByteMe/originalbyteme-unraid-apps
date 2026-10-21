@@ -46,7 +46,7 @@ log then prints a mobile pairing link and QR code instead.
 | Pairing address | `ORCA_PAIRING_ADDRESS` | Address clients dial. Empty means the container's Tailscale IP |
 | GitHub token | `GH_TOKEN` | Used by git and `gh` for clones, pushes and pull requests |
 | Repositories | `GIT_REPOS` | Space-separated `owner/name` or clone URLs, cloned once into `/projects` and added to Orca |
-| Agent CLIs | `NPM_PACKAGES` | npm packages installed once into the Data folder; they update themselves from there. Node and Bun are both installed, so Bun-based CLIs such as omp work |
+| Agents | `AGENTS` | Agent CLIs installed once into the Data folder; they update themselves from there. See the list below |
 | Shell | `SHELL` | `bash`, `zsh` or `fish` for Orca's terminals and the console. `tmux` is installed too |
 | Oh My Zsh | `OH_MY_ZSH` | `true` installs Oh My Zsh into the Data folder on the next start, keeping an existing `.zshrc` as `.zshrc.pre-oh-my-zsh` |
 | Git user name / email | `GIT_USER_NAME`, `GIT_USER_EMAIL` | Identity on the agents' commits |
@@ -57,6 +57,46 @@ log then prints a mobile pairing link and QR code instead.
 
 The agents run as that unprivileged account. The Console button drops you into
 its shell too; use `sh` instead of `bash` if you need root inside the container.
+
+## Agents
+
+**Agents** takes names from
+[Orca's supported agents](https://www.onorca.dev/docs/agents/supported), for
+example `omp claude codex`. Each one is installed from its vendor's official npm
+package; any other word is installed as an npm package of that name. Node and
+Bun are both in the image, so Bun-based CLIs such as omp run too.
+
+| Name | npm package |
+|---|---|
+| `amp` | `@ampcode/cli` |
+| `auggie` | `@augmentcode/auggie` |
+| `autohand` | `autohand-cli` |
+| `claude` | `@anthropic-ai/claude-code` |
+| `cline` | `cline` |
+| `codebuddy` | `@tencent-ai/codebuddy-code` |
+| `codebuff` | `codebuff` |
+| `codex` | `@openai/codex` |
+| `command-code` | `command-code` |
+| `continue` | `@continuedev/cli` |
+| `copilot` | `@github/copilot` |
+| `crush` | `@charmland/crush` |
+| `droid` | `droid` |
+| `freebuff` | `freebuff` |
+| `gemini` | `@google/gemini-cli` |
+| `kilo` | `@kilocode/cli` |
+| `kimi` | `@moonshot-ai/kimi-code` |
+| `minimax` | `@minimax-ai/code` |
+| `omp` | `@oh-my-pi/pi-coding-agent` |
+| `openclaw` | `openclaw` |
+| `opencode` | `opencode-ai` |
+| `pi` | `@earendil-works/pi-coding-agent` |
+| `qwen` | `@qwen-code/qwen-code` |
+
+The rest of Orca's list (Aider, Ante, Antigravity, Cursor CLI, DeepSeek Harness,
+Devin, Goose, Grok, Hermes, Kiro, Mistral Vibe, Muse, Prime Agent, Rovo Dev,
+Trae and ZCode) ships its own installers instead of an npm package. Run the
+vendor's install command once from the console; most install into your home
+folder, which is the Data folder, so they survive updates.
 
 ## Docker and VM access
 
@@ -98,11 +138,11 @@ docker build --build-arg ORCA_VERSION=1.4.237 -t unraid-orca .
 
 Every push runs `.github/workflows/build.yml`, which builds the image and checks
 that it refuses to start without a pairing address, honours PUID and PGID, can
-use a mapped Docker socket, runs omp on the bundled Bun, serves the web client,
-clones and registers a repository in `/projects`, and opens Orca terminals in
-zsh with Oh My Zsh loaded. Images are published from a manual run with
-**publish** ticked, or by the schedule when Orca has a release this repository
-has not built yet.
+use a mapped Docker socket, installs agents by name (omp running on Bun), serves
+the web client, clones and registers a repository in `/projects`, and opens
+Orca terminals in zsh with Oh My Zsh loaded. Images are published from a manual
+run with **publish** ticked, or by the schedule when Orca has a release this
+repository has not built yet.
 
 ## Credits
 

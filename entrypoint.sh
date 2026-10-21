@@ -36,7 +36,7 @@ if ! grep -qxF -- "$shell" /etc/shells; then
   log "WARNING: SHELL=${SHELL:-} is not an installed shell; using bash"
   shell=/bin/bash
 fi
-usermod -s "$shell" orca
+usermod -s "$shell" orca >/dev/null # prints "no changes" on every restart
 export SHELL=$shell
 
 # OH_MY_ZSH=true: Oh My Zsh in the Data folder, installed once the way its own
@@ -74,10 +74,24 @@ for repo in ${GIT_REPOS:-}; do
   fi
 done
 
-# NPM_PACKAGES: agent CLIs, installed once into ~/.local so they persist and self-update.
-for pkg in ${NPM_PACKAGES:-}; do
+# AGENTS: agent CLIs, installed once into ~/.local so they persist and update
+# themselves. The names map the agents in Orca's supported list that publish an
+# official npm package; any other word is taken as an npm package name.
+declare -A npm_name=(
+  [amp]=@ampcode/cli [auggie]=@augmentcode/auggie [autohand]=autohand-cli
+  [claude]=@anthropic-ai/claude-code [codebuddy]=@tencent-ai/codebuddy-code
+  [codex]=@openai/codex [continue]=@continuedev/cli [copilot]=@github/copilot
+  [crush]=@charmland/crush [gemini]=@google/gemini-cli [kilo]=@kilocode/cli
+  [kimi]=@moonshot-ai/kimi-code [minimax]=@minimax-ai/code
+  [omp]=@oh-my-pi/pi-coding-agent [opencode]=opencode-ai
+  [pi]=@earendil-works/pi-coding-agent [qwen]=@qwen-code/qwen-code
+)
+agents=${AGENTS:-}
+for name in ${agents//,/ }; do
+  name=${name,,}
+  pkg=${npm_name[$name]:-$name}
   [ -d "$HOME/.local/lib/node_modules/$pkg" ] || as_orca npm install --global --silent "$pkg" \
-    || log "WARNING: could not install $pkg"
+    || log "WARNING: could not install $name ($pkg)"
 done
 
 # `docker run <image> <command>` runs that command as orca instead of the server.
