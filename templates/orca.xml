@@ -10,12 +10,15 @@
   <Support>https://github.com/OriginalByteMe/unraid-orca/issues</Support>
   <Project>https://github.com/OriginalByteMe/unraid-orca</Project>
   <ReadMe>https://raw.githubusercontent.com/OriginalByteMe/unraid-orca/main/README.md</ReadMe>
-  <Overview>Runs Orca (onorca.dev) headless with orca serve, so its coding agents, worktrees and terminals live on your server. Pair the Orca desktop app, the browser client or the Orca phone app to it. The pairing link is printed in this container's log. Repositories live in a Projects folder you choose, and GitHub repositories can be cloned into it from a list. Agent CLIs install from npm on first start, and the terminals can use bash, zsh (with optional Oh My Zsh) or fish. Optional: map the Docker or libvirt socket so agents can run their own containers or VMs; either one gives the agents root-level control of this server.</Overview>
-  <Category>Tools:Utilities</Category>
+  <Overview>Unofficial Unraid image for Orca, Stably's open-source app (github.com/stablyai/orca) for running coding agents such as Claude Code and Codex side by side, each in its own git worktree. This container runs orca serve, Orca's headless runtime, so the agents, worktrees and terminals live on your server while the Orca desktop app, the browser client or the Orca phone app connect to it. The pairing link is printed in this container's log. On top of Orca, the image installs agent CLIs by name, clones your GitHub repositories into a Projects folder you choose, gives the terminals bash, zsh (with optional Oh My Zsh) or fish, works with Unraid's Use Tailscale switch, and is rebuilt for every Orca release. Optional: map the Docker or libvirt socket so agents can run their own containers or VMs; either one gives the agents root-level control of this server. The README has a step-by-step setup guide and tips.</Overview>
+  <Category>AI: Tools:Utilities</Category>
+  <Requires>An Orca client to pair with (desktop app, browser client or phone app) on a version close to this image's, and an account or API key for each agent you install.</Requires>
   <WebUI>http://[IP]:[PORT:6768]/web-index.html</WebUI>
   <TemplateURL>https://raw.githubusercontent.com/OriginalByteMe/unraid-orca/main/templates/orca.xml</TemplateURL>
   <Icon>https://raw.githubusercontent.com/OriginalByteMe/unraid-orca/main/icon.png</Icon>
-  <ExtraSearchTerms>orca agents claude codex worktrees ai coding</ExtraSearchTerms>
+  <Screenshot>https://raw.githubusercontent.com/OriginalByteMe/unraid-orca/main/screenshots/hero.jpg</Screenshot>
+  <Screenshot>https://raw.githubusercontent.com/OriginalByteMe/unraid-orca/main/screenshots/mobile.jpg</Screenshot>
+  <ExtraSearchTerms>orca stably agents claude claude-code codex gemini opencode omp worktrees ai coding headless remote tailscale</ExtraSearchTerms>
   <ExtraParams/>
   <PostArgs/>
   <TailscaleHostname>orca</TailscaleHostname>
