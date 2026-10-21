@@ -85,7 +85,8 @@ jobs:
             grep -q 'added /home/orca/projects/Hello-World to Orca' orca.log && break
             sleep 2
           done
-          cat orca.log
+          # The log carries live pairing links; keep them out of this public log.
+          grep -v -e 'pairing=' -e 'code=' orca.log || true
           grep -q 'Orca server ready' orca.log
           grep -q 'added /home/orca/projects/Hello-World to Orca' orca.log
           curl -fsS http://127.0.0.1:6768/web-index.html | grep -qi '<title>Orca Web</title>'

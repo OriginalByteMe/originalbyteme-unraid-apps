@@ -13,7 +13,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 RUN set -eux; \
     test -n "${ORCA_VERSION}"; \
     apt-get update; \
-    apt-get install -y --no-install-recommends ca-certificates curl gnupg jq; \
+    apt-get install -y --no-install-recommends ca-certificates curl jq; \
     install -d -m 0755 /etc/apt/keyrings; \
     curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc; \
     curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg -o /etc/apt/keyrings/github-cli.gpg; \

@@ -22,7 +22,7 @@ for sock in /var/run/docker.sock /var/run/libvirt/libvirt-sock; do
   [ -S "$sock" ] || continue
   gid=$(stat -c %g "$sock")
   getent group "$gid" >/dev/null || groupadd -g "$gid" "sock$gid"
-  usermod -aG "$(getent group "$gid" | cut -d: -f1)" orca
+  usermod -aG "$gid" orca
   if as_orca test -w "$sock"; then
     log "agents can use $sock (root-equivalent on this server)"
   else
@@ -69,20 +69,22 @@ if [ -z "$addr" ]; then
   exit 1
 fi
 
-# Once the runtime answers, add the cloned repos to Orca's project list.
+# Add the cloned repos to Orca's project list, retrying until the runtime answers
+# (`orca-ide status` succeeds before it does, so it cannot be the signal).
 register_repos() {
-  for _ in $(seq 90); do
-    as_orca orca-ide status --json >/dev/null 2>&1 && break
-    sleep 2
-  done
-  known=$(as_orca orca-ide repo list --json 2>/dev/null || true)
+  local dir known err
   for dir in "${repo_dirs[@]}"; do
-    grep -qF "\"$dir\"" <<<"$known" && continue
-    if as_orca orca-ide repo add --path "$dir" --json >/dev/null; then
-      log "added $dir to Orca"
-    else
-      log "WARNING: could not add $dir to Orca"
-    fi
+    for _ in $(seq 90); do
+      if known=$(as_orca orca-ide repo list --json 2>/dev/null) && grep -qF "\"$dir\"" <<<"$known"; then
+        continue 2
+      fi
+      if err=$(as_orca orca-ide repo add --path "$dir" --json 2>&1 >/dev/null); then
+        log "added $dir to Orca"
+        continue 2
+      fi
+      sleep 2
+    done
+    log "WARNING: could not add $dir to Orca: $err"
   done
 }
 [ ${#repo_dirs[@]} -eq 0 ] || register_repos &
