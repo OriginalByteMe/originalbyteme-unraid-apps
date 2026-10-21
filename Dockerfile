@@ -50,7 +50,7 @@ RUN set -eux; \
 # land in orca's home; `sh` still gives a root shell.
 RUN useradd --no-log-init -u 99 -g users -m -d /home/orca -s /bin/bash orca \
  && install -d -m 1777 /tmp/.X11-unix \
- && echo '[ "$(id -u)" = 0 ] && exec setpriv --reuid=orca --regid=orca --init-groups bash' >> /etc/bash.bashrc
+ && echo '[ "$(id -u)" = 0 ] && exec setpriv --reuid="$(id -u orca)" --regid="$(id -g orca)" --init-groups bash' >> /etc/bash.bashrc
 
 ENV HOME=/home/orca \
     PATH=/home/orca/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin \

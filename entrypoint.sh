@@ -5,7 +5,10 @@ set -euo pipefail
 
 export USER=orca LOGNAME=orca
 log() { echo "[unraid-orca] $*"; }
-as_orca() { setpriv --reuid=orca --regid=orca --init-groups "$@"; }
+# Numeric ids: setpriv resolves --regid names as group names, and orca's group
+# is "users" or whatever PGID points at.
+drop=(setpriv --reuid="$PUID" --regid="$PGID" --init-groups)
+as_orca() { "${drop[@]}" "$@"; }
 
 # Files in appdata get the owner Unraid expects (99:100 unless PUID/PGID say otherwise).
 if [ "$(id -u orca):$(id -g orca)" != "$PUID:$PGID" ]; then
@@ -55,7 +58,7 @@ for pkg in ${NPM_PACKAGES:-}; do
 done
 
 # `docker run <image> <command>` runs that command as orca instead of the server.
-[ $# -eq 0 ] || exec setpriv --reuid=orca --regid=orca --init-groups "$@"
+[ $# -eq 0 ] || exec "${drop[@]}" "$@"
 
 addr=${ORCA_PAIRING_ADDRESS:-}
 if [ -z "$addr" ] && tailscale ip -4 >/dev/null 2>&1; then
@@ -86,5 +89,5 @@ register_repos() {
 
 log "starting orca serve; clients dial $addr:6768"
 # shellcheck disable=SC2086 # ORCA_EXTRA_ARGS is a list of flags
-exec setpriv --reuid=orca --regid=orca --init-groups \
+exec "${drop[@]}" \
   orca-ide serve --port 6768 --pairing-address "$addr" ${ORCA_EXTRA_ARGS:-}
