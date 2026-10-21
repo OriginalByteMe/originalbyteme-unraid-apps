@@ -25,7 +25,7 @@ RUN set -eux; \
     apt-get update; \
     apt-get install -y --no-install-recommends \
       /tmp/orca.deb docker-ce-cli gh tailscale libvirt-clients \
-      git openssh-client tini xz-utils unzip zsh fish tmux \
+      git openssh-client tini xz-utils unzip zsh fish tmux python3 \
       libgtk-3-0t64 libnss3 libatk1.0-0t64 libatk-bridge2.0-0t64 libgbm1 libasound2t64 \
       libxtst6 libcups2t64 libdrm2 libxkbcommon0 libpango-1.0-0 libcairo2 libatspi2.0-0t64 \
       libxcomposite1 libxdamage1 libxfixes3 libxrandr2 libxrender1 libx11-xcb1 \
