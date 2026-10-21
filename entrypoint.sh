@@ -15,7 +15,7 @@ if [ "$(id -u orca):$(id -g orca)" != "$PUID:$PGID" ]; then
   getent group "$PGID" >/dev/null || groupadd -g "$PGID" orca
   usermod -o -u "$PUID" -g "$PGID" orca
 fi
-chown orca "$HOME"
+chown orca "$HOME" /projects
 
 # Mapped Docker or libvirt sockets: join whatever group owns them.
 for sock in /var/run/docker.sock /var/run/libvirt/libvirt-sock; do
@@ -30,20 +30,43 @@ for sock in /var/run/docker.sock /var/run/libvirt/libvirt-sock; do
   fi
 done
 
+# SHELL: bash, zsh or fish, for Orca's terminals and the console.
+shell=$(command -v "${SHELL:-bash}" || true)
+if ! grep -qxF -- "$shell" /etc/shells; then
+  log "WARNING: SHELL=${SHELL:-} is not an installed shell; using bash"
+  shell=/bin/bash
+fi
+usermod -s "$shell" orca
+export SHELL=$shell
+
+# OH_MY_ZSH=true: Oh My Zsh in the Data folder, installed once the way its own
+# installer does it, keeping any existing ~/.zshrc as ~/.zshrc.pre-oh-my-zsh.
+if [ "${OH_MY_ZSH:-false}" = true ] && [ ! -d "$HOME/.oh-my-zsh" ]; then
+  if as_orca git clone --quiet --depth 1 https://github.com/ohmyzsh/ohmyzsh.git "$HOME/.oh-my-zsh"; then
+    [ ! -s "$HOME/.zshrc" ] || as_orca mv "$HOME/.zshrc" "$HOME/.zshrc.pre-oh-my-zsh"
+    as_orca cp "$HOME/.oh-my-zsh/templates/zshrc.zsh-template" "$HOME/.zshrc"
+    log "installed Oh My Zsh"
+  else
+    log "WARNING: could not install Oh My Zsh"
+  fi
+fi
+# Without a ~/.zshrc, zsh opens its first-run questionnaire in every terminal.
+case $shell in */zsh) [ -e "$HOME/.zshrc" ] || as_orca touch "$HOME/.zshrc" ;; esac
+
 if [ -n "${GH_TOKEN:-}" ]; then
   as_orca gh auth setup-git || log "WARNING: gh auth setup-git failed; git will not use GH_TOKEN"
 fi
 [ -z "${GIT_USER_NAME:-}" ] || as_orca git config --global user.name "$GIT_USER_NAME"
 [ -z "${GIT_USER_EMAIL:-}" ] || as_orca git config --global user.email "$GIT_USER_EMAIL"
 
-# GIT_REPOS: owner/name (GitHub) or full clone URLs, cloned once into ~/projects.
+# GIT_REPOS: owner/name (GitHub) or full clone URLs, cloned once into /projects.
 repo_dirs=()
 for repo in ${GIT_REPOS:-}; do
   case "$repo" in
     *://* | git@*) url=$repo ;;
     *) url="https://github.com/$repo.git" ;;
   esac
-  dir="$HOME/projects/$(basename "$repo" .git)"
+  dir="/projects/$(basename "$repo" .git)"
   if [ -d "$dir/.git" ] || as_orca git clone --quiet "$url" "$dir"; then
     repo_dirs+=("$dir")
   else

@@ -9,7 +9,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 # Tailscale is preinstalled so Unraid's "Use Tailscale" hook skips its own
 # download on every start; the hook only needs jq and the two binaries.
 # The lib* packages are Electron libraries Orca's deb does not declare, taken
-# from Orca's headless Linux guide.
+# from Orca's headless Linux guide. zsh, fish and tmux back the Shell setting.
 RUN set -eux; \
     test -n "${ORCA_VERSION}"; \
     apt-get update; \
@@ -25,7 +25,7 @@ RUN set -eux; \
     apt-get update; \
     apt-get install -y --no-install-recommends \
       /tmp/orca.deb docker-ce-cli gh tailscale libvirt-clients \
-      git openssh-client tini xz-utils \
+      git openssh-client tini xz-utils unzip zsh fish tmux \
       libgtk-3-0t64 libnss3 libatk1.0-0t64 libatk-bridge2.0-0t64 libgbm1 libasound2t64 \
       libxtst6 libcups2t64 libdrm2 libxkbcommon0 libpango-1.0-0 libcairo2 libatspi2.0-0t64 \
       libxcomposite1 libxdamage1 libxfixes3 libxrandr2 libxrender1 libx11-xcb1 \
@@ -44,13 +44,26 @@ RUN set -eux; \
     rm /tmp/node.tar.xz; \
     node --version
 
+# Bun, which omp and other Bun-based agent CLIs run on. The baseline build also
+# runs on CPUs without AVX2, which many NAS boxes have.
+RUN set -eux; \
+    base=https://github.com/oven-sh/bun/releases/latest/download; \
+    line=$(curl -fsSL "$base/SHASUMS256.txt" | grep ' bun-linux-x64-baseline.zip$'); \
+    curl -fsSL -o /tmp/bun.zip "$base/bun-linux-x64-baseline.zip"; \
+    echo "${line%% *}  /tmp/bun.zip" | sha256sum -c -; \
+    unzip -j /tmp/bun.zip '*/bun' -d /usr/local/bin; \
+    ln -s bun /usr/local/bin/bunx; \
+    rm /tmp/bun.zip; \
+    bun --version
+
 # The runtime account, already 99:100 (Unraid's nobody:users); the entrypoint
 # moves it when PUID/PGID differ. Xvfb wants a root-owned X socket directory.
-# Interactive root bash (Unraid's Console button) becomes orca, so agent logins
-# land in orca's home; `sh` still gives a root shell.
+# Interactive root bash (Unraid's Console button) becomes orca in orca's shell,
+# so agent logins land in orca's home; `sh` still gives a root shell.
 RUN useradd --no-log-init -u 99 -g users -m -d /home/orca -s /bin/bash orca \
+ && install -d -o orca -g users /projects \
  && install -d -m 1777 /tmp/.X11-unix \
- && echo '[ "$(id -u)" = 0 ] && exec setpriv --reuid="$(id -u orca)" --regid="$(id -g orca)" --init-groups bash' >> /etc/bash.bashrc
+ && echo '[ "$(id -u)" = 0 ] && export SHELL="$(getent passwd orca | cut -d: -f7)" && exec setpriv --reuid="$(id -u orca)" --regid="$(id -g orca)" --init-groups "$SHELL"' >> /etc/bash.bashrc
 
 ENV HOME=/home/orca \
     PATH=/home/orca/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin \

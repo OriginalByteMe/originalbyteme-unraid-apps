@@ -76,21 +76,33 @@ jobs:
       - name: Agents can use a mapped Docker socket
         run: docker run --rm -v /var/run/docker.sock:/var/run/docker.sock unraid-orca:test docker ps
 
-      - name: Server starts, serves the web client and adds GIT_REPOS
+      - name: omp runs on the bundled Bun
+        run: docker run --rm -e NPM_PACKAGES=@oh-my-pi/pi-coding-agent unraid-orca:test omp --version
+
+      - name: Server starts, serves the web client, adds GIT_REPOS and opens zsh terminals
         run: |
-          docker run -d --name orca -p 6768:6768 \
-            -e ORCA_PAIRING_ADDRESS=127.0.0.1 -e GIT_REPOS=octocat/Hello-World unraid-orca:test
+          docker run -d --name orca -p 6768:6768 -e ORCA_PAIRING_ADDRESS=127.0.0.1 \
+            -e GIT_REPOS=octocat/Hello-World -e SHELL=zsh -e OH_MY_ZSH=true unraid-orca:test
           for _ in $(seq 90); do
             docker logs orca > orca.log 2>&1
-            grep -q 'added /home/orca/projects/Hello-World to Orca' orca.log && break
+            grep -q 'added /projects/Hello-World to Orca' orca.log && break
             sleep 2
           done
           # The log carries live pairing links; keep them out of this public log.
           grep -v -e 'pairing=' -e 'code=' orca.log || true
           grep -q 'Orca server ready' orca.log
-          grep -q 'added /home/orca/projects/Hello-World to Orca' orca.log
+          grep -q 'added /projects/Hello-World to Orca' orca.log
           curl -fsS http://127.0.0.1:6768/web-index.html | grep -qi '<title>Orca Web</title>'
-          test "$(docker exec orca stat -c %u /home/orca/projects/Hello-World)" = 99
+          test "$(docker exec orca stat -c %u /projects/Hello-World)" = 99
+          test "$(docker exec orca getent passwd orca | cut -d: -f7)" = /usr/bin/zsh
+          term=$(docker exec -u orca orca orca-ide terminal create --worktree path:/projects/Hello-World \
+            --command 'echo "shell=$0 omz=$ZSH"' --json | jq -r '[.. | .handle? | strings][0]')
+          for _ in $(seq 30); do
+            docker exec -u orca orca orca-ide terminal read --terminal "$term" --json > term.json
+            grep -q 'omz=/home/orca/.oh-my-zsh' term.json && break
+            sleep 1
+          done
+          grep -o 'shell=[^ ]*zsh omz=/home/orca/.oh-my-zsh' term.json || { cat term.json; exit 1; }
 
       - name: Publish
         if: github.event_name == 'schedule' || inputs.publish
