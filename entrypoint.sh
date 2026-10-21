@@ -15,7 +15,10 @@ if [ "$(id -u orca):$(id -g orca)" != "$PUID:$PGID" ]; then
   getent group "$PGID" >/dev/null || groupadd -g "$PGID" orca
   usermod -o -u "$PUID" -g "$PGID" orca
 fi
-chown orca "$HOME" /projects
+chown orca "$HOME"
+# Docker creates a missing Projects folder as root; an existing share that the
+# agents can already write keeps its owner.
+as_orca test -w /projects || chown orca /projects
 
 # Mapped Docker or libvirt sockets: join whatever group owns them.
 for sock in /var/run/docker.sock /var/run/libvirt/libvirt-sock; do

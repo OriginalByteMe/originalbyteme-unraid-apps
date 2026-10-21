@@ -94,8 +94,8 @@ Bun are both in the image, so Bun-based CLIs such as omp run too.
 
 The rest of Orca's list (Aider, Ante, Antigravity, Cursor CLI, DeepSeek Harness,
 Devin, Goose, Grok, Hermes, Kiro, Mistral Vibe, Muse, Prime Agent, Rovo Dev,
-Trae and ZCode) ships its own installers instead of an npm package. Run the
-vendor's install command once from the console; most install into your home
+Trae and ZCode) has no npm package its vendor documents. Install those from the
+console following the vendor's instructions; most install into your home
 folder, which is the Data folder, so they survive updates.
 
 ## Docker and VM access
