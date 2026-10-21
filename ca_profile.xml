@@ -1,0 +1,6 @@
+<?xml version="1.0"?>
+<CommunityApplications>
+  <Profile>Unraid template and image for Orca (onorca.dev), the app for running a fleet of coding agents in parallel git worktrees. The image runs orca serve headless and tracks every Orca release. Report problems on GitHub issues.</Profile>
+  <Icon>https://raw.githubusercontent.com/OriginalByteMe/unraid-orca/main/icon.png</Icon>
+  <WebPage>https://github.com/OriginalByteMe/unraid-orca</WebPage>
+</CommunityApplications>
