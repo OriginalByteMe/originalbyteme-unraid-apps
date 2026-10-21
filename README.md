@@ -84,6 +84,9 @@ Unraid shows an update on the Docker tab when a new image is out. Update the
 Orca desktop and phone apps at about the same time; a client and server too far
 apart report an incompatible protocol version.
 
+Updating or restarting the container ends every running terminal and agent in
+it; their history and worktrees stay in the Data folder. Do it between tasks.
+
 ## Building it yourself
 
 ```sh
