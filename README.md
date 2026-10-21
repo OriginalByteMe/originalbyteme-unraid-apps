@@ -1,40 +1,82 @@
 # unraid-orca
 
-An Unraid template and Docker image for [Orca](https://www.onorca.dev), the app
-for running coding agents side by side in their own git worktrees. The container
-runs `orca serve`, Orca's headless runtime, so the agents, worktrees and
-terminals live on your server while the Orca desktop app, the browser client or
-the Orca phone app connect to it.
+![Orca's desktop and phone apps (screenshot from the Orca repository)](screenshots/hero.jpg)
+
+An unofficial Unraid template and Docker image for [Orca](https://www.onorca.dev)
+([source](https://github.com/stablyai/orca)), Stably's open-source app for
+running coding agents such as Claude Code and Codex side by side, each in its own
+git worktree. The container runs `orca serve`, Orca's headless runtime, so the
+agents, worktrees and terminals live on your server while the Orca desktop app,
+the browser client or the Orca phone app connect to it. This project is not
+affiliated with Stably.
 
 The image is rebuilt whenever Orca publishes a release, because Orca clients and
 servers need matching versions to talk to each other.
 
-## Install
+## What this image adds to Orca
 
-Until the template is in Community Apps, copy it onto the flash drive from the
-Unraid terminal:
+- Starts `orca serve` as Unraid's usual 99:100 account and prints the pairing
+  link in the container log.
+- Installs agent CLIs by name, for example `claude codex omp`, into the Data
+  folder so they survive updates.
+- Clones a list of GitHub repositories into a Projects folder and adds them to
+  Orca.
+- Offers bash, zsh with optional Oh My Zsh, or fish for the terminals, plus tmux.
+- Works with Unraid's **Use Tailscale** switch, so any device on your tailnet can
+  pair.
+- Can hand the agents the Docker or libvirt socket, so they can run their own
+  containers and VMs.
 
-```sh
-curl -fsSL -o /boot/config/plugins/dockerMan/templates-user/my-Orca.xml \
-  https://raw.githubusercontent.com/OriginalByteMe/unraid-orca/main/templates/orca.xml
-```
+## Getting started
 
-Then on the Docker tab choose **Add Container** and pick **Orca** from the user
-templates.
+1. **Install the template.** Until it is in Community Apps, copy it onto the
+   flash drive from the Unraid terminal:
 
-1. Set **Pairing address** to the address your other devices use to reach the
-   server (its LAN or Tailscale IP), or turn on **Use Tailscale** and leave it
-   empty (see below).
-2. Apply, then open the container's log. Orca prints a **Pairing URL** and a
-   **Browser URL**.
-3. In the Orca desktop app, go to **Settings → Remote Orca Servers → Add Server**
-   and paste the pairing URL. Or open the browser URL directly.
-4. Open the container's **Console** and log in to each agent once, for example
-   `claude` and then `/login`, or `codex login --device-auth`. Logins are kept in
-   the Data folder.
+   ```sh
+   curl -fsSL -o /boot/config/plugins/dockerMan/templates-user/my-Orca.xml \
+     https://raw.githubusercontent.com/OriginalByteMe/unraid-orca/main/templates/orca.xml
+   ```
 
-For the phone app, add `--mobile-pairing` under **Extra serve arguments**; the
-log then prints a mobile pairing link and QR code instead.
+   Then on the Docker tab choose **Add Container** and pick **Orca** from the
+   user templates.
+2. **Choose how your devices reach it.** Turn on **Use Tailscale** and leave
+   **Pairing address** empty (see [Tailscale](#tailscale)), or set **Pairing
+   address** to the server's LAN or Tailscale IP.
+3. **Point Projects at your code.** The default is a folder inside appdata; any
+   share works.
+4. **List your repositories.** Put them under **Repositories** as `owner/name`,
+   and fill in **GitHub token** if any are private. They are cloned and added to
+   Orca on the first start, so your projects are waiting when you pair.
+5. **Pick your agents and shell**, for example `claude codex` under **Agents**,
+   and `zsh` with **Oh My Zsh** set to `true`.
+6. **Apply and pair.** Open the container's log; Orca prints a **Pairing URL**
+   and a **Browser URL**. In the Orca desktop app go to **Settings → Remote Orca
+   Servers → Add Server** and paste the pairing URL, or open the browser URL. For
+   the phone app, add `--mobile-pairing` under **Extra serve arguments**; the log
+   then prints a mobile pairing link and QR code instead.
+7. **Log in to each agent once.** Open the container's **Console** and run, for
+   example, `claude` and then `/login`, or `codex login --device-auth`. Logins
+   are kept in the Data folder, so updates don't log you out.
+
+## Tips
+
+- **Get your repositories in early.** Fill in **Repositories** before the first
+  start. Adding one later and applying clones only the new one; existing clones
+  are never touched or deleted. You can also `git clone` into `/projects` from
+  the Console.
+- **Use `owner/name` or HTTPS URLs with a GitHub token.** The token is set up
+  for both git and `gh`, so agents can push and open pull requests. SSH URLs
+  need a key in `~/.ssh` (in the Data folder) and github.com in `known_hosts`;
+  running `ssh -T git@github.com` once from the Console adds it.
+- **Set Git user name and email** in the advanced view, so the agents' commits
+  carry your name.
+- **Keep Data and Projects on a fast pool.** Worktrees, `node_modules` and agent
+  logs are lots of small files, which a cache pool or SSD handles far better
+  than the parity array.
+- **Cap its memory** with `--memory=8g` under **Extra Parameters**, so one
+  runaway build can't starve the rest of the server.
+- **Turn off key expiry** for the `orca` machine in the Tailscale admin console,
+  or it drops off your tailnet after 180 days.
 
 ## Settings
 
@@ -147,6 +189,9 @@ repository has not built yet.
 ## Credits
 
 Orca is made by [Stably](https://github.com/stablyai/orca) and is MIT licensed;
-the icon is Orca's. The Docker approach borrows from
+the icon and the images in `screenshots/` are Orca's, Copyright (c) 2026
+Lovecast Inc., used under
+[Orca's MIT license](https://github.com/stablyai/orca/blob/main/LICENSE). The
+Docker approach borrows from
 [ivan-cavero/Orca-Headless](https://github.com/ivan-cavero/Orca-Headless). This
 repository is MIT licensed.
