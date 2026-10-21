@@ -66,7 +66,8 @@ servers need matching versions to talk to each other.
   the Console.
 - **Use `owner/name` or HTTPS URLs with a GitHub token.** The token is set up
   for both git and `gh`, so agents can push and open pull requests. SSH URLs
-  need a key in `~/.ssh`, which is in the Data folder.
+  need a key in `~/.ssh` (in the Data folder) and github.com in `known_hosts`;
+  running `ssh -T git@github.com` once from the Console adds it.
 - **Set Git user name and email** in the advanced view, so the agents' commits
   carry your name.
 - **Keep Data and Projects on a fast pool.** Worktrees, `node_modules` and agent
@@ -76,8 +77,6 @@ servers need matching versions to talk to each other.
   runaway build can't starve the rest of the server.
 - **Turn off key expiry** for the `orca` machine in the Tailscale admin console,
   or it drops off your tailnet after 180 days.
-- **Update between tasks.** Updating or restarting ends every running terminal
-  and agent; see [Updating](#updating).
 
 ## Settings
 
@@ -191,6 +190,8 @@ repository has not built yet.
 
 Orca is made by [Stably](https://github.com/stablyai/orca) and is MIT licensed;
 the icon and the images in `screenshots/` are Orca's, Copyright (c) 2026
-Lovecast Inc., used under that MIT license. The Docker approach borrows from
+Lovecast Inc., used under
+[Orca's MIT license](https://github.com/stablyai/orca/blob/main/LICENSE). The
+Docker approach borrows from
 [ivan-cavero/Orca-Headless](https://github.com/ivan-cavero/Orca-Headless). This
 repository is MIT licensed.
