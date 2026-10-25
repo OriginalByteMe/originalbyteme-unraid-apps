@@ -1,0 +1,48 @@
+name: orca-bump
+
+# Every 6 hours, compares Orca's latest release with the version pinned in the
+# Dockerfile. When it is newer, opens a pull request that bumps the pin, closes
+# older bump pull requests, and runs build.yml on the branch, since a pull
+# request opened with the workflow token does not trigger it. Closing a bump
+# pull request skips that version. Merging one publishes the image.
+on:
+  schedule:
+    - cron: "23 */6 * * *"
+  workflow_dispatch:
+
+permissions:
+  actions: write
+  contents: write
+  pull-requests: write
+
+jobs:
+  bump:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          pinned=$(sed -n 's/^ARG ORCA_VERSION=//p' Dockerfile)
+          latest=$(gh release view --repo stablyai/orca --json tagName -q .tagName)
+          latest=${latest#v}
+          if [ "$(printf '%s\n' "$pinned" "$latest" | sort -V | tail -n1)" = "$pinned" ]; then
+            echo "Orca $pinned is the latest release"
+            exit 0
+          fi
+          branch=orca-$latest
+          if [ -n "$(gh pr list --head "$branch" --state all --json number -q '.[].number')" ]; then
+            echo "$branch already has a pull request"
+            exit 0
+          fi
+          sed -i "s/^ARG ORCA_VERSION=.*/ARG ORCA_VERSION=$latest/" Dockerfile
+          git switch -c "$branch"
+          git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' \
+            commit -qam "Orca $latest"
+          git push -qf origin "$branch"
+          gh pr list --state open --json number,headRefName -q '.[] | select(.headRefName | test("^orca-[0-9]")) | .number' |
+            while read -r pr; do gh pr close "$pr" --delete-branch --comment "Superseded by Orca $latest."; done
+          gh pr create --head "$branch" --title "Orca $latest" \
+            --body "Bumps Orca from $pinned to $latest. Release notes: https://github.com/stablyai/orca/releases/tag/v$latest"
+          gh workflow run build.yml --ref "$branch"
