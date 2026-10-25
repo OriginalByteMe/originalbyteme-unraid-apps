@@ -2,7 +2,8 @@
 # Tailscale hook are both x86_64 here.
 FROM ubuntu:24.04
 
-ARG ORCA_VERSION
+# Pinned; .github/workflows/orca-bump.yml opens a pull request for each release.
+ARG ORCA_VERSION=1.4.240
 ENV DEBIAN_FRONTEND=noninteractive
 
 # Docker CLI, GitHub CLI and Tailscale come from their vendors' apt repos.

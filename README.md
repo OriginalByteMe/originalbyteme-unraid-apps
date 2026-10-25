@@ -165,9 +165,12 @@ device on your tailnet can pair.
 
 ## Updating
 
-Unraid shows an update on the Docker tab when a new image is out. Update the
-Orca desktop and phone apps at about the same time; a client and server too far
-apart report an incompatible protocol version.
+Unraid shows an update on the Docker tab when a new image is out, which happens
+when a pull request bumping Orca's version is merged here. To stay on one
+version, change the Repository field to a version tag such as
+`ghcr.io/originalbyteme/unraid-orca:1.4.240`. Update the Orca desktop and phone
+apps at about the same time; a client and server too far apart report an
+incompatible protocol version.
 
 Updating or restarting the container ends every running terminal and agent in
 it; their history and worktrees stay in the Data folder. Do it between tasks.
@@ -175,16 +178,21 @@ it; their history and worktrees stay in the Data folder. Do it between tasks.
 ## Building it yourself
 
 ```sh
-docker build --build-arg ORCA_VERSION=1.4.237 -t unraid-orca .
+docker build -t unraid-orca .
 ```
 
 Every push runs `.github/workflows/build.yml`, which builds the image and checks
 that it refuses to start without a pairing address, honours PUID and PGID, can
 use a mapped Docker socket, installs agents by name (omp running on Bun), serves
 the web client, clones and registers a repository in `/projects`, and opens
-Orca terminals in zsh with Oh My Zsh loaded. Images are published from a manual
-run with **publish** ticked, or by the schedule when Orca has a release this
-repository has not built yet.
+Orca terminals in zsh with Oh My Zsh loaded.
+
+The Orca version is pinned in the Dockerfile. Every 6 hours
+`.github/workflows/orca-bump.yml` checks Orca's releases and, when there is a
+newer one, opens a pull request that bumps the pin and runs the build against
+it. Merging that pull request publishes the image; closing it skips that
+version. A manual run of `build.yml` with **publish** ticked republishes the
+pinned version, for example after a Dockerfile change.
 
 ## Credits
 
