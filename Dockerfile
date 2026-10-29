@@ -3,7 +3,7 @@
 FROM ubuntu:24.04
 
 # Pinned; .github/workflows/orca-bump.yml opens a pull request for each release.
-ARG ORCA_VERSION=1.4.241
+ARG ORCA_VERSION=1.4.244
 ENV DEBIAN_FRONTEND=noninteractive
 
 # Docker CLI, GitHub CLI and Tailscale come from their vendors' apt repos.
