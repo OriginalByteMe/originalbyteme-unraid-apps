@@ -2,14 +2,14 @@
 <Container version="2">
   <Name>T3-Code</Name>
   <Repository>ghcr.io/originalbyteme/unraid-t3code:latest</Repository>
-  <Registry>https://github.com/OriginalByteMe/unraid-t3code/pkgs/container/unraid-t3code</Registry>
+  <Registry>https://github.com/users/OriginalByteMe/packages/container/package/unraid-t3code</Registry>
   <Network>bridge</Network>
   <MyIP/>
   <Shell>bash</Shell>
   <Privileged>false</Privileged>
-  <Support>https://github.com/OriginalByteMe/unraid-t3code/issues</Support>
-  <Project>https://github.com/OriginalByteMe/unraid-t3code</Project>
-  <ReadMe>https://raw.githubusercontent.com/OriginalByteMe/unraid-t3code/main/README.md</ReadMe>
+  <Support>https://github.com/OriginalByteMe/originalbyteme-unraid-apps/issues</Support>
+  <Project>https://github.com/OriginalByteMe/originalbyteme-unraid-apps/tree/main/t3code</Project>
+  <ReadMe>https://raw.githubusercontent.com/OriginalByteMe/originalbyteme-unraid-apps/main/t3code/README.md</ReadMe>
   <Overview>Unofficial Unraid image for T3 Code (t3.codes, github.com/pingdotgg/t3code), the open-source control surface for coding agents such as Claude Code, Codex, Cursor, OpenCode and Pi. This container runs t3 serve, T3 Code's headless server, so the agents, projects, worktrees and terminals live on your server while the T3 Code web, desktop and phone apps connect to it. Run t3 pair in the container's console for a pairing token, then open the WebUI and paste it. On top of T3 Code, the image installs agent CLIs by name, clones your GitHub repositories into a Projects folder you choose and adds them to T3 Code, gives the terminals bash, zsh (with optional Oh My Zsh) or fish, ships the libraries T3's built-in browser needs, works with Unraid's Use Tailscale switch, and is rebuilt for every T3 Code release. Optional: map the Docker or libvirt socket so agents can run their own containers and VMs.</Overview>
   <Category>AI: Tools:Utilities</Category>
   <Requires>A T3 Code client to pair with (web app, desktop app or phone app) on a version close to this image's, and an account or API key for each agent you use.</Requires>
@@ -18,8 +18,8 @@
 - First release, with T3 Code 0.1.5.
   </Changes>
   <WebUI>http://[IP]:[PORT:3773]/</WebUI>
-  <TemplateURL>https://raw.githubusercontent.com/OriginalByteMe/unraid-t3code/main/templates/t3code.xml</TemplateURL>
-  <Icon>https://raw.githubusercontent.com/OriginalByteMe/unraid-t3code/main/icon.png</Icon>
+  <TemplateURL>https://raw.githubusercontent.com/OriginalByteMe/originalbyteme-unraid-apps/main/templates/t3code.xml</TemplateURL>
+  <Icon>https://raw.githubusercontent.com/OriginalByteMe/originalbyteme-unraid-apps/main/t3code/icon.png</Icon>
   <ExtraSearchTerms>t3 t3code t3.codes theo agents claude claude-code codex cursor opencode pi gemini omp acp worktrees ai coding headless remote tailscale</ExtraSearchTerms>
   <ExtraParams>--shm-size=1g</ExtraParams>
   <PostArgs/>

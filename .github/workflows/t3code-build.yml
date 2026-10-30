@@ -1,14 +1,20 @@
-name: build
+name: t3code-build
 
-# Every push and pull request builds and smoke-tests the image at the T3 Code
-# version pinned in the Dockerfile. A push to main publishes it to each
-# registry that has no image for that version yet, which is what merging a
-# t3-bump pull request does. A manual run with `publish` ticked publishes it
-# regardless. Docker Hub gets a copy because Community Apps reads an image's
-# Last Update date from Docker Hub, even for images on GHCR.
+# Every push and pull request that touches T3 Code builds and smoke-tests the
+# image at the T3 Code version pinned in t3code/Dockerfile. A push to main
+# publishes it to each registry that has no image for that version yet, which is
+# what merging a t3code-bump pull request does. A manual run with `publish`
+# ticked publishes it regardless. Docker Hub gets a copy because Community Apps
+# reads an image's Last Update date from Docker Hub, even for images on GHCR.
 on:
   push:
+    paths: &paths
+      - t3code/**
+      - templates/t3code.xml
+      - ca_profile.xml
+      - .github/workflows/t3code-build.yml
   pull_request:
+    paths: *paths
   workflow_dispatch:
     inputs:
       publish:
@@ -32,13 +38,13 @@ jobs:
 
       - name: Lint
         run: |
-          shellcheck entrypoint.sh
+          shellcheck t3code/entrypoint.sh
           python3 -c 'import sys, xml.etree.ElementTree as E; [E.parse(f) for f in sys.argv[1:]]' templates/*.xml ca_profile.xml
 
       - name: Build
         run: |
-          echo "VERSION=$(sed -n 's/^ARG T3CODE_VERSION=//p' Dockerfile)" >> "$GITHUB_ENV"
-          docker build -t unraid-t3code:test .
+          echo "VERSION=$(sed -n 's/^ARG T3CODE_VERSION=//p' t3code/Dockerfile)" >> "$GITHUB_ENV"
+          docker build -t unraid-t3code:test t3code
 
       - name: PUID and PGID move the t3code account
         run: |

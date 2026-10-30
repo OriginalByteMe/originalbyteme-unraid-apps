@@ -1,8 +1,8 @@
 name: orca-bump
 
-# Every 6 hours, compares Orca's latest release with the version pinned in the
-# Dockerfile. When it is newer, opens a pull request that bumps the pin, closes
-# older bump pull requests, and runs build.yml on the branch, since a pull
+# Every 6 hours, compares Orca's latest release with the version pinned in
+# orca/Dockerfile. When it is newer, opens a pull request that bumps the pin,
+# closes older bump pull requests, and runs orca-build.yml on the branch, since a pull
 # request opened with the workflow token does not trigger it. Closing a bump
 # pull request skips that version. Merging one publishes the image.
 on:
@@ -24,7 +24,7 @@ jobs:
       - env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          pinned=$(sed -n 's/^ARG ORCA_VERSION=//p' Dockerfile)
+          pinned=$(sed -n 's/^ARG ORCA_VERSION=//p' orca/Dockerfile)
           latest=$(gh release view --repo stablyai/orca --json tagName -q .tagName)
           latest=${latest#v}
           if [ "$(printf '%s\n' "$pinned" "$latest" | sort -V | tail -n1)" = "$pinned" ]; then
@@ -36,7 +36,7 @@ jobs:
             echo "$branch already has a pull request"
             exit 0
           fi
-          sed -i "s/^ARG ORCA_VERSION=.*/ARG ORCA_VERSION=$latest/" Dockerfile
+          sed -i "s/^ARG ORCA_VERSION=.*/ARG ORCA_VERSION=$latest/" orca/Dockerfile
           git switch -c "$branch"
           git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' \
             commit -qam "Orca $latest"
@@ -45,4 +45,4 @@ jobs:
             while read -r pr; do gh pr close "$pr" --delete-branch --comment "Superseded by Orca $latest."; done
           gh pr create --head "$branch" --title "Orca $latest" \
             --body "Bumps Orca from $pinned to $latest. Release notes: https://github.com/stablyai/orca/releases/tag/v$latest"
-          gh workflow run build.yml --ref "$branch"
+          gh workflow run orca-build.yml --ref "$branch"

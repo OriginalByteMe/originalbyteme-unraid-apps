@@ -1,14 +1,20 @@
-name: build
+name: orca-build
 
-# Every push and pull request builds and smoke-tests the image at the Orca
-# version pinned in the Dockerfile. A push to main publishes it to each
+# Every push and pull request that touches Orca builds and smoke-tests the image
+# at the Orca version pinned in orca/Dockerfile. A push to main publishes it to each
 # registry that has no image for that version yet, which is what merging an
 # orca-bump pull request does. A manual run with `publish` ticked publishes it
 # regardless. Docker Hub gets a copy because Community Apps reads an image's
 # Last Update date from Docker Hub, even for images on GHCR.
 on:
   push:
+    paths: &paths
+      - orca/**
+      - templates/orca.xml
+      - ca_profile.xml
+      - .github/workflows/orca-build.yml
   pull_request:
+    paths: *paths
   workflow_dispatch:
     inputs:
       publish:
@@ -32,13 +38,13 @@ jobs:
 
       - name: Lint
         run: |
-          shellcheck entrypoint.sh
+          shellcheck orca/entrypoint.sh
           python3 -c 'import sys, xml.etree.ElementTree as E; [E.parse(f) for f in sys.argv[1:]]' templates/*.xml ca_profile.xml
 
       - name: Build
         run: |
-          echo "VERSION=$(sed -n 's/^ARG ORCA_VERSION=//p' Dockerfile)" >> "$GITHUB_ENV"
-          docker build -t unraid-orca:test .
+          echo "VERSION=$(sed -n 's/^ARG ORCA_VERSION=//p' orca/Dockerfile)" >> "$GITHUB_ENV"
+          docker build -t unraid-orca:test orca
 
       - name: Refuses to start without a pairing address
         run: |

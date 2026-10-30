@@ -1,8 +1,8 @@
-name: t3-bump
+name: t3code-bump
 
 # Every 6 hours, compares T3 Code's latest stable release with the version
-# pinned in the Dockerfile. When it is newer, opens a pull request that bumps
-# the pin, closes older bump pull requests, and runs build.yml on the branch,
+# pinned in t3code/Dockerfile. When it is newer, opens a pull request that bumps
+# the pin, closes older bump pull requests, and runs t3code-build.yml on the branch,
 # since a pull request opened with the workflow token does not trigger it.
 # Closing a bump pull request skips that version. Merging one publishes the image.
 on:
@@ -24,7 +24,7 @@ jobs:
       - env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          pinned=$(sed -n 's/^ARG T3CODE_VERSION=//p' Dockerfile)
+          pinned=$(sed -n 's/^ARG T3CODE_VERSION=//p' t3code/Dockerfile)
           # The latest release, which excludes nightlies and other prereleases.
           latest=$(gh release view --repo pingdotgg/t3code --json tagName -q .tagName)
           latest=${latest#v}
@@ -37,7 +37,7 @@ jobs:
             echo "$branch already has a pull request"
             exit 0
           fi
-          sed -i "s/^ARG T3CODE_VERSION=.*/ARG T3CODE_VERSION=$latest/" Dockerfile
+          sed -i "s/^ARG T3CODE_VERSION=.*/ARG T3CODE_VERSION=$latest/" t3code/Dockerfile
           git switch -c "$branch"
           git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' \
             commit -qam "T3 Code $latest"
@@ -46,4 +46,4 @@ jobs:
             while read -r pr; do gh pr close "$pr" --delete-branch --comment "Superseded by T3 Code $latest."; done
           gh pr create --head "$branch" --title "T3 Code $latest" \
             --body "Bumps T3 Code from $pinned to $latest. Release notes: https://github.com/pingdotgg/t3code/releases/tag/v$latest"
-          gh workflow run build.yml --ref "$branch"
+          gh workflow run t3code-build.yml --ref "$branch"

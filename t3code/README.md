@@ -35,7 +35,7 @@ and that can change with any release.
 
    ```sh
    curl -fsSL -o /boot/config/plugins/dockerMan/templates-user/my-T3-Code.xml \
-     https://raw.githubusercontent.com/OriginalByteMe/unraid-t3code/main/templates/t3code.xml
+     https://raw.githubusercontent.com/OriginalByteMe/originalbyteme-unraid-apps/main/templates/t3code.xml
    ```
 
    Then on the Docker tab choose **Add Container** and pick **T3-Code** from the
@@ -196,22 +196,23 @@ threads after restarts**).
 ## Building it yourself
 
 ```sh
-docker build -t unraid-t3code .
+docker build -t unraid-t3code t3code
 ```
 
-Every push runs `.github/workflows/build.yml`, which builds the image and checks
-that it honours PUID and PGID, can use a mapped Docker socket, installs agents
-by name (omp running on Bun), runs a headless Chrome with the shipped libraries
-and fonts, serves the web UI, clones a repository into `/projects` and adds it
-to T3 Code once across restarts, and gives the account zsh with Oh My Zsh.
+Every push that touches T3 Code runs `.github/workflows/t3code-build.yml`,
+which builds the image and checks that it honours PUID and PGID, can use a
+mapped Docker socket, installs agents by name (omp running on Bun), runs a
+headless Chrome with the shipped libraries and fonts, serves the web UI, clones
+a repository into `/projects` and adds it to T3 Code once across restarts, and
+gives the account zsh with Oh My Zsh.
 
 The T3 Code version is pinned in the Dockerfile. Every 6 hours
-`.github/workflows/t3-bump.yml` checks T3 Code's stable releases and, when there
-is a newer one, opens a pull request that bumps the pin and runs the build
+`.github/workflows/t3code-bump.yml` checks T3 Code's stable releases and, when
+there is a newer one, opens a pull request that bumps the pin and runs the build
 against it. Merging that pull request publishes the image to GHCR and to Docker
 Hub as `originalbyteme/unraid-t3code`, where Community Apps reads its Last
-Update date; closing it skips that version. A manual run of `build.yml` with
-**publish** ticked republishes the pinned version, for example after a
+Update date; closing it skips that version. A manual run of `t3code-build.yml`
+with **publish** ticked republishes the pinned version, for example after a
 Dockerfile change.
 
 ## Credits
@@ -219,5 +220,4 @@ Dockerfile change.
 T3 Code is made by [T3 Tools](https://github.com/pingdotgg/t3code) and is MIT
 licensed; the icon is T3 Code's, Copyright (c) 2026 T3 Tools Inc., used under
 [T3 Code's MIT license](https://github.com/pingdotgg/t3code/blob/main/LICENSE).
-This repository is MIT licensed and follows the layout of
-[unraid-orca](https://github.com/OriginalByteMe/unraid-orca).
+This repository is MIT licensed.

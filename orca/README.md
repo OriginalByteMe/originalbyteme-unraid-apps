@@ -34,7 +34,7 @@ servers need matching versions to talk to each other.
 
    ```sh
    curl -fsSL -o /boot/config/plugins/dockerMan/templates-user/my-Orca.xml \
-     https://raw.githubusercontent.com/OriginalByteMe/unraid-orca/main/templates/orca.xml
+     https://raw.githubusercontent.com/OriginalByteMe/originalbyteme-unraid-apps/main/templates/orca.xml
    ```
 
    Then on the Docker tab choose **Add Container** and pick **Orca** from the
@@ -178,22 +178,23 @@ it; their history and worktrees stay in the Data folder. Do it between tasks.
 ## Building it yourself
 
 ```sh
-docker build -t unraid-orca .
+docker build -t unraid-orca orca
 ```
 
-Every push runs `.github/workflows/build.yml`, which builds the image and checks
-that it refuses to start without a pairing address, honours PUID and PGID, can
-use a mapped Docker socket, installs agents by name (omp running on Bun), serves
-the web client, clones and registers a repository in `/projects`, and opens
-Orca terminals in zsh with Oh My Zsh loaded.
+Every push that touches Orca runs `.github/workflows/orca-build.yml`, which
+builds the image and checks that it refuses to start without a pairing address,
+honours PUID and PGID, can use a mapped Docker socket, installs agents by name
+(omp running on Bun), serves the web client, clones and registers a repository
+in `/projects`, and opens Orca terminals in zsh with Oh My Zsh loaded.
 
 The Orca version is pinned in the Dockerfile. Every 6 hours
 `.github/workflows/orca-bump.yml` checks Orca's releases and, when there is a
 newer one, opens a pull request that bumps the pin and runs the build against
 it. Merging that pull request publishes the image to GHCR and to Docker Hub as
 `originalbyteme/unraid-orca`, where Community Apps reads its Last Update date;
-closing it skips that version. A manual run of `build.yml` with **publish**
-ticked republishes the pinned version, for example after a Dockerfile change.
+closing it skips that version. A manual run of `orca-build.yml` with
+**publish** ticked republishes the pinned version, for example after a
+Dockerfile change.
 
 ## Credits
 
