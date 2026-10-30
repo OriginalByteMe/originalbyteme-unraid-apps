@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <CommunityApplications>
-  <Profile>Unofficial Unraid template and Docker image for Orca (onorca.dev), Stably's open-source app for running coding agents in parallel git worktrees. The image runs orca serve headless and is rebuilt for every Orca release. Not affiliated with Stably: report problems with the container on this repository's GitHub issues, and problems with Orca itself at github.com/stablyai/orca.</Profile>
-  <Icon>https://raw.githubusercontent.com/OriginalByteMe/unraid-orca/main/icon.png</Icon>
-  <WebPage>https://github.com/OriginalByteMe/unraid-orca</WebPage>
+  <Profile>Noah Rijkaard (OriginalByteMe on GitHub), a senior full-stack engineer in Kuala Lumpur. I maintain the unofficial Unraid template and Docker image for Orca (onorca.dev), Stably's open-source app for running coding agents in parallel git worktrees. Not affiliated with Stably: report problems with the container on the unraid-orca GitHub issues, and problems with Orca itself at github.com/stablyai/orca. More about me at [noahrijkaard.com](https://noahrijkaard.com).</Profile>
+  <Icon>https://avatars.githubusercontent.com/u/24838592?v=4</Icon>
+  <WebPage>https://github.com/OriginalByteMe</WebPage>
 </CommunityApplications>
