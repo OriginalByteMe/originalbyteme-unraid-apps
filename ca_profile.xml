@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <CommunityApplications>
-  <Profile>Noah Rijkaard (OriginalByteMe on GitHub), a senior full-stack engineer in Kuala Lumpur. I maintain the unofficial Unraid template and Docker image for Orca (onorca.dev), Stably's open-source app for running coding agents in parallel git worktrees. Not affiliated with Stably: report problems with the container on the unraid-orca GitHub issues, and problems with Orca itself at github.com/stablyai/orca. More about me at [noahrijkaard.com](https://noahrijkaard.com).</Profile>
+  <Profile>Noah Rijkaard (OriginalByteMe on GitHub), a senior full-stack engineer in Kuala Lumpur. I maintain unofficial Unraid templates and Docker images for coding-agent tools: Orca (onorca.dev), Stably's open-source app for running coding agents in parallel git worktrees, and T3 Code (t3.codes), the open-source control surface for coding agents such as Claude Code, Codex and OpenCode. I'm not affiliated with Stably or T3 Tools Inc.: report problems with a container on the originalbyteme-unraid-apps GitHub issues, and problems with the apps themselves at github.com/stablyai/orca or github.com/pingdotgg/t3code. More about me at [noahrijkaard.com](https://noahrijkaard.com).</Profile>
   <Icon>https://avatars.githubusercontent.com/u/24838592?v=4</Icon>
   <WebPage>https://github.com/OriginalByteMe</WebPage>
 </CommunityApplications>
