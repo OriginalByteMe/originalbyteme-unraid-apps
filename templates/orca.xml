@@ -13,6 +13,18 @@
   <Overview>Unofficial Unraid image for Orca, Stably's open-source app (github.com/stablyai/orca) for running coding agents such as Claude Code and Codex side by side, each in its own git worktree. This container runs orca serve, Orca's headless runtime, so the agents, worktrees and terminals live on your server while the Orca desktop app, the browser client or the Orca phone app connect to it. The pairing link is printed in this container's log. On top of Orca, the image installs agent CLIs by name, clones your GitHub repositories into a Projects folder you choose, gives the terminals bash, zsh (with optional Oh My Zsh) or fish, works with Unraid's Use Tailscale switch, and is rebuilt for every Orca release. Optional: map the Docker or libvirt socket so agents can run their own containers or VMs; either one gives the agents root-level control of this server. The README has a step-by-step setup guide and tips.</Overview>
   <Category>AI: Tools:Utilities</Category>
   <Requires>An Orca client to pair with (desktop app, browser client or phone app) on a version close to this image's, and an account or API key for each agent you install.</Requires>
+  <Changes>
+### 2026-10-26
+- Orca 1.4.241.
+
+### 2026-10-25
+- The Orca version is pinned, and each new release is published as `:latest` and as its own version tag, so you can stay on one version with a tag such as `:1.4.241`.
+
+### 2026-10-21
+- First release.
+- python3 is installed for Python-based agent tooling.
+- An existing Projects share keeps its owner when the agents can already write to it.
+  </Changes>
   <WebUI>http://[IP]:[PORT:6768]/web-index.html</WebUI>
   <TemplateURL>https://raw.githubusercontent.com/OriginalByteMe/unraid-orca/main/templates/orca.xml</TemplateURL>
   <Icon>https://raw.githubusercontent.com/OriginalByteMe/unraid-orca/main/icon.png</Icon>

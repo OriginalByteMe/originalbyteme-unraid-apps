@@ -190,9 +190,10 @@ Orca terminals in zsh with Oh My Zsh loaded.
 The Orca version is pinned in the Dockerfile. Every 6 hours
 `.github/workflows/orca-bump.yml` checks Orca's releases and, when there is a
 newer one, opens a pull request that bumps the pin and runs the build against
-it. Merging that pull request publishes the image; closing it skips that
-version. A manual run of `build.yml` with **publish** ticked republishes the
-pinned version, for example after a Dockerfile change.
+it. Merging that pull request publishes the image to GHCR and to Docker Hub as
+`originalbyteme/unraid-orca`, where Community Apps reads its Last Update date;
+closing it skips that version. A manual run of `build.yml` with **publish**
+ticked republishes the pinned version, for example after a Dockerfile change.
 
 ## Credits
 
