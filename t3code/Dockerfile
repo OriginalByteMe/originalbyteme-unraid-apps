@@ -3,7 +3,7 @@
 FROM ubuntu:24.04
 
 # Pinned; .github/workflows/t3code-bump.yml opens a pull request for each release.
-ARG T3CODE_VERSION=0.1.5
+ARG T3CODE_VERSION=0.1.6
 ENV DEBIAN_FRONTEND=noninteractive
 
 # Docker CLI, GitHub CLI and Tailscale come from their vendors' apt repos.
