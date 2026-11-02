@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <Container version="2">
   <Name>T3-Code</Name>
-  <Repository>ghcr.io/originalbyteme/unraid-t3code:latest</Repository>
-  <Registry>https://github.com/users/OriginalByteMe/packages/container/package/unraid-t3code</Registry>
+  <Repository>originalbyteme/unraid-t3code:latest</Repository>
+  <Registry>https://hub.docker.com/r/originalbyteme/unraid-t3code</Registry>
   <Network>bridge</Network>
   <MyIP/>
   <Shell>bash</Shell>
@@ -14,6 +14,8 @@
   <Category>AI: Tools:Utilities</Category>
   <Requires>A T3 Code client to pair with (web app, desktop app or phone app) on a version close to this image's, and an account or API key for each agent you use.</Requires>
   <Changes>
+### 2026-11-02
+- The image is now published on Docker Hub only. If you installed before this, change the Repository field to `originalbyteme/unraid-t3code:latest`, or you will stay on 0.1.5.
 ### 2026-10-30
 - First release, with T3 Code 0.1.5.
   </Changes>

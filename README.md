@@ -8,7 +8,7 @@ in `templates/`.
 | App | What it runs | Image | Setup guide |
 | --- | --- | --- | --- |
 | Orca | `orca serve`, the headless runtime of [Orca](https://www.onorca.dev), which runs coding agents side by side in their own git worktrees | `ghcr.io/originalbyteme/unraid-orca` | [orca/README.md](orca/README.md) |
-| T3 Code | `t3 serve`, the headless server of [T3 Code](https://t3.codes), a control surface for Claude Code, Codex, Cursor, OpenCode and Pi | `ghcr.io/originalbyteme/unraid-t3code` | [t3code/README.md](t3code/README.md) |
+| T3 Code | `t3 serve`, the headless server of [T3 Code](https://t3.codes), a control surface for Claude Code, Codex, Cursor, OpenCode and Pi | `originalbyteme/unraid-t3code` | [t3code/README.md](t3code/README.md) |
 
 ## Layout
 
