@@ -2,10 +2,10 @@ name: t3code-build
 
 # Every push and pull request that touches T3 Code builds and smoke-tests the
 # image at the T3 Code version pinned in t3code/Dockerfile. A push to main
-# publishes it to each registry that has no image for that version yet, which is
+# publishes it to Docker Hub when that has no image for that version yet, which is
 # what merging a t3code-bump pull request does. A manual run with `publish`
-# ticked publishes it regardless. Docker Hub gets a copy because Community Apps
-# reads an image's Last Update date from Docker Hub, even for images on GHCR.
+# ticked publishes it regardless. Community Apps reads an image's Last Update
+# date from Docker Hub.
 on:
   push:
     paths: &paths
@@ -18,17 +18,15 @@ on:
   workflow_dispatch:
     inputs:
       publish:
-        description: Push the tested image to GHCR and Docker Hub (adds :latest on main)
+        description: Push the tested image to Docker Hub (adds :latest on main)
         type: boolean
         default: false
 
 permissions:
   contents: read
-  packages: write
 
 env:
-  IMAGE: ghcr.io/originalbyteme/unraid-t3code
-  HUB_IMAGE: docker.io/originalbyteme/unraid-t3code
+  IMAGE: docker.io/originalbyteme/unraid-t3code
 
 jobs:
   image:
@@ -109,17 +107,14 @@ jobs:
         env:
           DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
         run: |
-          echo "${{ github.token }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
           echo "$DOCKERHUB_TOKEN" | docker login docker.io -u originalbyteme --password-stdin
-          for image in "$IMAGE" "$HUB_IMAGE"; do
-            if [ "$GITHUB_EVENT_NAME" = push ] && docker manifest inspect "$image:$VERSION" >/dev/null 2>&1; then
-              echo "$image:$VERSION is already published"
-              continue
-            fi
-            tags="$image:$VERSION"
-            if [ "$GITHUB_REF" = refs/heads/main ]; then tags="$tags $image:latest"; fi
-            for tag in $tags; do
-              docker tag unraid-t3code:test "$tag"
-              docker push "$tag"
-            done
+          if [ "$GITHUB_EVENT_NAME" = push ] && docker manifest inspect "$IMAGE:$VERSION" >/dev/null 2>&1; then
+            echo "$IMAGE:$VERSION is already published"
+            exit 0
+          fi
+          tags="$IMAGE:$VERSION"
+          if [ "$GITHUB_REF" = refs/heads/main ]; then tags="$tags $IMAGE:latest"; fi
+          for tag in $tags; do
+            docker tag unraid-t3code:test "$tag"
+            docker push "$tag"
           done

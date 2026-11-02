@@ -185,7 +185,7 @@ instead, and don't run `t3 update` in the Console, since the container always
 starts the image's own version.
 
 To stay on one version, change the Repository field to a version tag such as
-`ghcr.io/originalbyteme/unraid-t3code:0.1.5`. Going back to an older version
+`originalbyteme/unraid-t3code:0.1.5`. Going back to an older version
 than you have run may not work, because newer versions migrate the database.
 
 Updating or restarting the container interrupts running agents and terminals.
@@ -209,8 +209,8 @@ gives the account zsh with Oh My Zsh.
 The T3 Code version is pinned in the Dockerfile. Every 6 hours
 `.github/workflows/t3code-bump.yml` checks T3 Code's stable releases and, when
 there is a newer one, opens a pull request that bumps the pin and runs the build
-against it. Merging that pull request publishes the image to GHCR and to Docker
-Hub as `originalbyteme/unraid-t3code`, where Community Apps reads its Last
+against it. Merging that pull request publishes the image to Docker Hub as
+`originalbyteme/unraid-t3code`, where Community Apps reads its Last
 Update date; closing it skips that version. A manual run of `t3code-build.yml`
 with **publish** ticked republishes the pinned version, for example after a
 Dockerfile change.
