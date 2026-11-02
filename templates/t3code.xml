@@ -16,6 +16,7 @@
   <Changes>
 ### 2026-11-02
 - The image is now published on Docker Hub only. If you installed before this, change the Repository field to `originalbyteme/unraid-t3code:latest`, or you will stay on 0.1.5.
+
 ### 2026-10-30
 - First release, with T3 Code 0.1.5.
   </Changes>
