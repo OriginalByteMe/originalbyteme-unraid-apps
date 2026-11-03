@@ -72,10 +72,11 @@ fi
 
 # Tailnet names (*.ts.net) resolve only through Tailscale's resolver at
 # 100.100.100.100, and Docker gives the container the host's other DNS servers.
-# When the host runs Tailscale, put its resolver first: it answers SERVFAIL for
-# names outside the tailnet, and glibc then asks the next server. The probe asks
-# for nope.invalid, which gets a reply with or without upstream DNS. Skipped where
-# Docker's own resolver (127.0.0.11) serves container names on a custom network.
+# When the host runs Tailscale, put its resolver first. Without upstream DNS it
+# answers SERVFAIL for names outside the tailnet, and glibc then asks the next
+# server. The probe asks for nope.invalid, which gets a reply either way.
+# Skipped where Docker's own resolver (127.0.0.11) serves container names on a
+# custom network.
 if ! grep -q '^nameserver 127\.0\.0\.11' /etc/resolv.conf &&
   python3 -c 'import socket; s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM); s.settimeout(2); s.sendto(b"\0\7\1\0\0\1\0\0\0\0\0\0\4nope\7invalid\0\0\1\0\1", ("100.100.100.100", 53)); s.recv(512)' 2>/dev/null; then
   servers=$(grep -vx 'nameserver 100.100.100.100' /etc/resolv.conf || true)
