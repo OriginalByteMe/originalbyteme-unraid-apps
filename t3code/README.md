@@ -175,6 +175,12 @@ and HTTPS for your tailnet first). Pair with that address and a token as in
 step 5. HTTPS is what the hosted web app at app.t3.codes needs; the desktop and
 phone apps also work over plain `http://t3code:3773`.
 
+If the Unraid server itself runs Tailscale, the container can reach your other
+tailnet machines by their `.ts.net` names without the switch, for example to
+link a T3 Code server on your laptop. At startup it looks for Tailscale's DNS at
+`100.100.100.100` and, if it answers, asks it first. On a custom Docker network
+the container keeps Docker's own DNS, so `.ts.net` names do not resolve there.
+
 ## Updating
 
 Unraid shows an update on the Docker tab when a new image is out, which happens

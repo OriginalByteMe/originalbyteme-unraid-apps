@@ -16,6 +16,7 @@
   <Changes>
 ### 2026-11-03
 - New **Server name** setting: the name T3 Code's apps show for this server, instead of the container ID.
+- When the Unraid server runs Tailscale, the container now resolves your tailnet's `.ts.net` names, so it can link T3 Code on your other machines.
 
 ### 2026-11-02
 - The image is now published on Docker Hub only. If you installed before this, change the Repository field to `originalbyteme/unraid-t3code:latest`, or you will stay on 0.1.5.
