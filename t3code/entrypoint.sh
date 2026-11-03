@@ -70,6 +70,18 @@ fi
 # to the container ID.
 [ -z "${SERVER_NAME:-}" ] || printf 'PRETTY_HOSTNAME="%s"\n' "$SERVER_NAME" > /etc/machine-info
 
+# Tailnet names (*.ts.net) resolve only through Tailscale's resolver at
+# 100.100.100.100, and Docker gives the container the host's other DNS servers.
+# When the host runs Tailscale, put its resolver first: it answers SERVFAIL for
+# names outside the tailnet, and glibc then asks the next server. Skipped where
+# Docker's own resolver (127.0.0.11) serves container names on a custom network.
+if ! grep -q '^nameserver 127\.0\.0\.11' /etc/resolv.conf &&
+  python3 -c 'import socket; s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM); s.settimeout(2); s.sendto(bytes.fromhex("0007010000010000000000000000020001"), ("100.100.100.100", 53)); s.recv(512)' 2>/dev/null; then
+  servers=$(grep -vx 'nameserver 100.100.100.100' /etc/resolv.conf || true)
+  printf 'nameserver 100.100.100.100\n%s\n' "$servers" > /etc/resolv.conf
+  log "tailnet names resolve through the host's Tailscale"
+fi
+
 # GIT_REPOS: owner/name (GitHub) or full clone URLs, cloned once into /projects.
 repo_dirs=()
 for repo in ${GIT_REPOS:-}; do
