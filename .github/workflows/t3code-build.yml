@@ -72,9 +72,9 @@ jobs:
           cat chrome.out
           grep -q '<p>rendered</p>' chrome.out
 
-      - name: Server starts, pairs a client and lists GIT_REPOS as a project across restarts
+      - name: Server starts under SERVER_NAME, pairs a client and lists GIT_REPOS as a project across restarts
         run: |
-          docker run -d --name t3 -p 3773:3773 \
+          docker run -d --name t3 -p 3773:3773 -e SERVER_NAME='Test server' \
             -e GIT_REPOS=octocat/Hello-World -e SHELL=zsh -e OH_MY_ZSH=true unraid-t3code:test
           ready() {
             for _ in $(seq 90); do
@@ -93,6 +93,7 @@ jobs:
           test "$(grep -c 'added /projects/Hello-World to T3 Code' t3.log)" = 1
           test "$(grep -c '\[unraid-t3code\] WARNING' t3.log)" = 0
           curl -fsS http://127.0.0.1:3773/ | grep -q '<title>T3 Code'
+          curl -fsS http://127.0.0.1:3773/.well-known/t3/environment | jq -e '.label == "Test server"'
           test "$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:3773/api/projects)" = 401
           token=$(docker exec -u t3code t3 t3 auth pairing create --json | jq -r .credential)
           curl -fsS -c jar -H 'content-type: application/json' -d "{\"credential\":\"$token\"}" \

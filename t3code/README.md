@@ -107,6 +107,7 @@ T3 Connect account.
 | T3 Code port | 3773 | Port the web UI and the apps connect to |
 | Data | `/home/t3code` | Threads, settings, paired devices, worktrees, agent logins and shell settings |
 | Projects | `/projects` | Your repositories. Add projects from here in T3 Code; point it at any share |
+| Server name | `SERVER_NAME` | Name the T3 Code apps show for this server, `Unraid` by default. Empty shows the container ID |
 | GitHub token | `GH_TOKEN` | Used by git and `gh` for clones, pushes and pull requests |
 | Repositories | `GIT_REPOS` | Space-separated `owner/name` or clone URLs, cloned once into `/projects` and added to T3 Code |
 | Agents | `AGENTS` | Agent CLIs installed once into the Data folder; they update themselves from there. See the list below |
