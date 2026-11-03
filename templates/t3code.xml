@@ -14,6 +14,9 @@
   <Category>AI: Tools:Utilities</Category>
   <Requires>A T3 Code client to pair with (web app, desktop app or phone app) on a version close to this image's, and an account or API key for each agent you use.</Requires>
   <Changes>
+### 2026-11-03
+- New **Server name** setting: the name T3 Code's apps show for this server, instead of the container ID.
+
 ### 2026-11-02
 - The image is now published on Docker Hub only. If you installed before this, change the Repository field to `originalbyteme/unraid-t3code:latest`, or you will stay on 0.1.5.
 
@@ -31,6 +34,7 @@
   <Config Name="T3 Code port" Target="3773" Default="3773" Mode="tcp" Description="Port the web UI and the T3 Code apps connect to." Type="Port" Display="always" Required="true" Mask="false">3773</Config>
   <Config Name="Data" Target="/home/t3code" Default="/mnt/user/appdata/t3code" Mode="rw" Description="T3 Code's threads, settings, paired devices, worktrees, agent logins and shell settings." Type="Path" Display="always" Required="true" Mask="false">/mnt/user/appdata/t3code</Config>
   <Config Name="Projects" Target="/projects" Default="/mnt/user/appdata/t3code/projects" Mode="rw" Description="Your repositories, at /projects in the container. Add projects from here in T3 Code. Point it at any share." Type="Path" Display="always" Required="true" Mask="false">/mnt/user/appdata/t3code/projects</Config>
+  <Config Name="Server name" Target="SERVER_NAME" Default="Unraid" Mode="" Description="Name T3 Code's apps show for this server. Spaces are fine. Empty shows the container ID." Type="Variable" Display="always" Required="false" Mask="false">Unraid</Config>
   <Config Name="GitHub token" Target="GH_TOKEN" Default="" Mode="" Description="Optional. A GitHub token git and gh use for cloning, pushing and pull requests." Type="Variable" Display="always" Required="false" Mask="true"/>
   <Config Name="Repositories" Target="GIT_REPOS" Default="" Mode="" Description="Optional. Space-separated owner/name (GitHub) or clone URLs. Each is cloned once into /projects and added to T3 Code." Type="Variable" Display="always" Required="false" Mask="false"/>
   <Config Name="Agents" Target="AGENTS" Default="claude codex" Mode="" Description="Space-separated agent CLIs installed once into the Data folder: claude, codex, gemini, omp, opencode, pi, or any npm package name. Log in to each agent once from the container console." Type="Variable" Display="always" Required="false" Mask="false">claude codex</Config>

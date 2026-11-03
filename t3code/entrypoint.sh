@@ -65,6 +65,11 @@ fi
 [ -z "${GIT_USER_NAME:-}" ] || as_t3 git config --global user.name "$GIT_USER_NAME"
 [ -z "${GIT_USER_EMAIL:-}" ] || as_t3 git config --global user.email "$GIT_USER_EMAIL"
 
+# SERVER_NAME: the name T3 Code's apps show for this server. T3 reads
+# PRETTY_HOSTNAME from /etc/machine-info before the hostname, which Docker sets
+# to the container ID.
+[ -z "${SERVER_NAME:-}" ] || printf 'PRETTY_HOSTNAME="%s"\n' "$SERVER_NAME" > /etc/machine-info
+
 # GIT_REPOS: owner/name (GitHub) or full clone URLs, cloned once into /projects.
 repo_dirs=()
 for repo in ${GIT_REPOS:-}; do
