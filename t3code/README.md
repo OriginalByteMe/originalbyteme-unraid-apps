@@ -185,6 +185,9 @@ Nextcloud, so your other devices pick them up as usual.
 - The first start copies the whole folder down. A note edited on both sides
   within the same minute keeps both edits: the newer one keeps the name and the
   other is saved next to it as `NAME.conflict1`.
+- If a sync fails badly enough that rclone has to match both sides up again,
+  the older of two differing copies of a note is moved to `.vault-sync-backup/`
+  on its own side, which stays out of the sync, instead of being overwritten.
 - Obsidian's `workspace*.json` files and `.trash` stay out of the sync, so each
   device keeps its own layout.
 - A failed sync shows up in the container log as a `vault sync:` line and is
