@@ -27,6 +27,8 @@ and that can change with any release.
   connect, over HTTPS too.
 - Can hand the agents the Docker or libvirt socket, so they can run their own
   containers and VMs.
+- Ships rsync next to git and ssh, so agents can copy files to and from other
+  machines.
 
 ## Getting started
 
