@@ -25,7 +25,7 @@ RUN set -eux; \
     apt-get update; \
     apt-get install -y --no-install-recommends \
       docker-ce-cli gh tailscale libvirt-clients \
-      git openssh-client tini procps xz-utils unzip zsh fish tmux python3 \
+      git openssh-client rsync tini procps xz-utils unzip zsh fish tmux python3 \
       libnss3 libglib2.0-0t64 libatk1.0-0t64 libatk-bridge2.0-0t64 libatspi2.0-0t64 \
       libdbus-1-3 libx11-6 libxcb1 libxcomposite1 libxdamage1 libxext6 libxfixes3 \
       libxrandr2 libxkbcommon0 libgbm1 libasound2t64 libexpat1 fontconfig fonts-liberation; \
