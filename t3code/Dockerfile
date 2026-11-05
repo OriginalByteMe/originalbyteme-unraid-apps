@@ -67,6 +67,17 @@ RUN set -eux; \
     rm /tmp/bun.zip; \
     bun --version
 
+# rclone, for the optional vault sync (VAULT_WEBDAV_URL). Latest at build time,
+# checked against the release's published sums.
+RUN set -eux; \
+    base=https://github.com/rclone/rclone/releases/latest/download; \
+    line=$(curl -fsSL "$base/SHA256SUMS" | grep 'linux-amd64\.zip$'); \
+    curl -fsSL -o /tmp/rclone.zip "$base/${line##* }"; \
+    echo "${line%% *}  /tmp/rclone.zip" | sha256sum -c -; \
+    unzip -j /tmp/rclone.zip '*/rclone' -d /usr/local/bin; \
+    rm /tmp/rclone.zip; \
+    rclone version
+
 # The runtime account, already 99:100 (Unraid's nobody:users); the entrypoint
 # moves it when PUID/PGID differ. Interactive root bash (Unraid's Console
 # button) becomes t3code in its shell, so agent logins land in t3code's home;
@@ -85,5 +96,6 @@ ENV HOME=/home/t3code \
     PGID=100
 
 COPY --chmod=0755 entrypoint.sh /usr/local/bin/entrypoint
+COPY --chmod=0755 vault-sync /usr/local/bin/vault-sync
 EXPOSE 3773
 ENTRYPOINT ["/usr/bin/tini", "--", "/usr/local/bin/entrypoint"]

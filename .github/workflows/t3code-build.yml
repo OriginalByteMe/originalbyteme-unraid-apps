@@ -36,7 +36,7 @@ jobs:
 
       - name: Lint
         run: |
-          shellcheck t3code/entrypoint.sh
+          shellcheck t3code/entrypoint.sh t3code/vault-sync
           python3 -c 'import sys, xml.etree.ElementTree as E; [E.parse(f) for f in sys.argv[1:]]' templates/*.xml ca_profile.xml
 
       - name: Build
@@ -55,6 +55,24 @@ jobs:
 
       - name: Agent names install their npm packages, and omp runs on Bun
         run: docker run --rm -e AGENTS='OMP, claude' unraid-t3code:test sh -c 'omp --version && claude --version'
+
+      # A local rclone WebDAV server stands in for Nextcloud.
+      - name: vault-sync keeps ~/vault and the WebDAV folder in step both ways
+        run: |
+          docker run --rm -e VAULT_WEBDAV_URL=http://127.0.0.1:8080 -e VAULT_SYNC_INTERVAL=2 unraid-t3code:test bash -c '
+            set -e
+            wait_for() { for _ in $(seq 30); do eval "$1" && return; sleep 1; done; echo "timed out: $1"; exit 1; }
+            mkdir -p /tmp/dav/.obsidian && echo note > /tmp/dav/a.md && echo {} > /tmp/dav/.obsidian/workspace.json
+            rclone serve webdav /tmp/dav --addr 127.0.0.1:8080 --dir-cache-time 0s -q &
+            vault-sync &
+            wait_for "[ -f ~/vault/a.md ]"
+            test ! -e ~/vault/.obsidian/workspace.json
+            echo agent > ~/vault/b.md
+            wait_for "[ -f /tmp/dav/b.md ]"
+            echo "edited elsewhere" > /tmp/dav/a.md
+            wait_for "grep -q elsewhere ~/vault/a.md"
+            rm ~/vault/b.md
+            wait_for "[ ! -e /tmp/dav/b.md ]"'
 
       # The Chrome build this T3 Code release downloads, run the way T3 runs it
       # in the container (no sandbox), against the image's libraries and fonts.
