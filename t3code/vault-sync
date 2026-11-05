@@ -29,17 +29,21 @@ mkdir -p "$dir" "$work"
 # sides keeps both edits: on Nextcloud the newer one keeps the name and the
 # other is saved next to it as NAME.conflict1.
 args=(bisync vault: "$dir" --workdir "$work"
-  --exclude '/.obsidian/workspace*.json' --exclude '/.trash/**'
+  --exclude '/.obsidian/workspace*.json' --exclude '/.trash/**' --exclude '/.vault-sync-backup/**'
   --resilient --recover --conflict-resolve newer --max-lock 5m -q)
 
 log "syncing $VAULT_WEBDAV_URL with $dir every ${interval}s"
 while :; do
   # With no listings from a good run (the first start, or after rclone locks a
-  # run out on a critical error) a resync copies whatever is missing each way
-  # and keeps the newer copy of a file that differs. A deleted file can come
-  # back that way, but nothing is lost.
+  # run out on a critical error) a resync copies whatever is missing each way.
+  # It renames nothing: of a file that differs on both sides the newer copy
+  # wins, so the other one is moved to .vault-sync-backup/TIME/ on its own side.
+  # A deleted file can come back that way, but no edit is lost.
   resync=()
-  compgen -G "$work/*.path1.lst" >/dev/null || resync=(--resync --resync-mode newer)
+  if ! compgen -G "$work/*.path1.lst" >/dev/null; then
+    backup=.vault-sync-backup/$(date -u +%Y%m%dT%H%M%SZ)
+    resync=(--resync --resync-mode newer --backup-dir1 "vault:$backup" --backup-dir2 "$dir/$backup")
+  fi
   rclone "${args[@]}" "${resync[@]}" || log "rclone exited $?; trying again in ${interval}s"
   sleep "$interval"
 done

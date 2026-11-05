@@ -64,7 +64,7 @@ jobs:
             wait_for() { for _ in $(seq 30); do eval "$1" && return; sleep 1; done; echo "timed out: $1"; exit 1; }
             mkdir -p /tmp/dav/.obsidian && echo note > /tmp/dav/a.md && echo {} > /tmp/dav/.obsidian/workspace.json
             rclone serve webdav /tmp/dav --addr 127.0.0.1:8080 --dir-cache-time 0s -q &
-            vault-sync &
+            vault-sync & sync=$!
             wait_for "[ -f ~/vault/a.md ]"
             test ! -e ~/vault/.obsidian/workspace.json
             echo agent > ~/vault/b.md
@@ -72,7 +72,17 @@ jobs:
             echo "edited elsewhere" > /tmp/dav/a.md
             wait_for "grep -q elsewhere ~/vault/a.md"
             rm ~/vault/b.md
-            wait_for "[ ! -e /tmp/dav/b.md ]"'
+            wait_for "[ ! -e /tmp/dav/b.md ]"
+            # After a critical error rclone renames its listings and the next round
+            # resyncs, which overwrites one side of a two-sided edit unless kept.
+            kill $sync && wait $sync || true
+            while pgrep -f "^rclone bisync" >/dev/null; do sleep 0.2; done
+            for f in ~/.cache/vault-sync/*.lst; do mv "$f" "$f-err"; done
+            echo "edited in the vault" > ~/vault/a.md && echo "edited on the server" > /tmp/dav/a.md
+            vault-sync &
+            wait_for "ls ~/.cache/vault-sync/*.path1.lst"
+            kept=$(cat ~/vault/a.md /tmp/dav/a.md ~/vault/.vault-sync-backup/*/a.md /tmp/dav/.vault-sync-backup/*/a.md 2>/dev/null || true)
+            grep -q "in the vault" <<<"$kept" && grep -q "on the server" <<<"$kept"'
 
       # The Chrome build this T3 Code release downloads, run the way T3 runs it
       # in the container (no sandbox), against the image's libraries and fonts.
