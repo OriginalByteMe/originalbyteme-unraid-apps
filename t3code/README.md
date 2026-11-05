@@ -29,6 +29,8 @@ and that can change with any release.
   containers and VMs.
 - Ships rsync next to git and ssh, so agents can copy files to and from other
   machines.
+- Can keep a Nextcloud folder, such as an Obsidian vault, synced both ways with
+  `~/vault`, so agents read and write your notes.
 
 ## Getting started
 
@@ -116,6 +118,7 @@ T3 Connect account.
 | Shell | `SHELL` | `bash`, `zsh` or `fish` for T3 Code's terminals and the console. `tmux` is installed too |
 | Oh My Zsh | `OH_MY_ZSH` | `true` installs Oh My Zsh into the Data folder on the next start, keeping an existing `.zshrc` as `.zshrc.pre-oh-my-zsh` |
 | Git user name / email | `GIT_USER_NAME`, `GIT_USER_EMAIL` | Identity on the agents' commits |
+| Vault folder URL / user / app password | `VAULT_WEBDAV_URL`, `VAULT_WEBDAV_USER`, `VAULT_WEBDAV_PASS` | Off unless you fill them in. See below |
 | Docker socket | `/var/run/docker.sock` | Off unless you fill it in. See below |
 | libvirt socket | `/var/run/libvirt/libvirt-sock` | Off unless you fill it in. See below |
 | PUID / PGID | `PUID`, `PGID` | Account the agents run as, 99:100 by default like other Unraid apps |
@@ -165,6 +168,27 @@ other app's data, or stop other containers and VMs. Only map them when you trust
 every agent and prompt that runs in this container. Containers the agents start
 are not limited by this container's memory settings, so give them `--memory`
 caps yourself.
+
+## Vault sync
+
+Fill in the three **Vault** settings to keep a Nextcloud folder, such as an
+Obsidian vault, in step with `~/vault` in the Data folder. A background job syncs
+both ways every minute (set `VAULT_SYNC_INTERVAL` in seconds to change that), and
+the agents get `OBSIDIAN_VAULT=/home/t3code/vault`. Their edits go through
+Nextcloud, so your other devices pick them up as usual.
+
+- **Use the server's LAN address**, for example
+  `http://192.168.1.10:8080/remote.php/dav/files/alice/My%20Vault`, with spaces
+  written as `%20`. That address has to be one of Nextcloud's trusted domains. A
+  public address behind Cloudflare can turn away clients that aren't browsers.
+- **Use an app password** from Nextcloud's Personal settings, Security.
+- The first start copies the whole folder down. A note edited on both sides
+  within the same minute keeps both edits: the newer one keeps the name and the
+  other is saved next to it as `NAME.conflict1`.
+- Obsidian's `workspace*.json` files and `.trash` stay out of the sync, so each
+  device keeps its own layout.
+- A failed sync shows up in the container log as a `vault sync:` line and is
+  tried again on the next round.
 
 ## Tailscale
 

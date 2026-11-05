@@ -128,5 +128,13 @@ for dir in "${repo_dirs[@]}"; do
   fi
 done
 
+# VAULT_WEBDAV_URL: a Nextcloud folder, such as an Obsidian vault, kept in step
+# with ~/vault both ways. Agents and their Obsidian tools find it through
+# OBSIDIAN_VAULT.
+if [ -n "${VAULT_WEBDAV_URL:-}" ]; then
+  export OBSIDIAN_VAULT=$HOME/vault
+  as_t3 vault-sync &
+fi
+
 log "starting t3 serve on port 3773; run t3 pair in the Console for a pairing token"
 exec "${drop[@]}" "$t3" serve --host 0.0.0.0 --port 3773 /projects

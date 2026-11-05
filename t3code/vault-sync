@@ -1,0 +1,45 @@
+#!/bin/bash
+# Keeps ~/vault and the WebDAV folder at VAULT_WEBDAV_URL in step, both ways,
+# every VAULT_SYNC_INTERVAL seconds (default 60). The entrypoint starts it in the
+# background as t3code when VAULT_WEBDAV_URL is set.
+set -uo pipefail
+
+log() { echo "[unraid-t3code] vault sync: $*"; }
+
+# The remote lives in the environment, so no rclone.conf holds the password.
+export RCLONE_CONFIG=/dev/null
+export RCLONE_CONFIG_VAULT_TYPE=webdav
+export RCLONE_CONFIG_VAULT_URL=$VAULT_WEBDAV_URL
+export RCLONE_CONFIG_VAULT_USER=${VAULT_WEBDAV_USER:-}
+RCLONE_CONFIG_VAULT_PASS=$(rclone obscure "${VAULT_WEBDAV_PASS:-}")
+export RCLONE_CONFIG_VAULT_PASS
+# Nextcloud keeps modification times and takes chunked uploads; plain WebDAV may not.
+case $VAULT_WEBDAV_URL in
+  */remote.php/*) export RCLONE_CONFIG_VAULT_VENDOR=nextcloud ;;
+  *) export RCLONE_CONFIG_VAULT_VENDOR=other ;;
+esac
+
+dir=$HOME/vault
+work=$HOME/.cache/vault-sync
+interval=${VAULT_SYNC_INTERVAL:-60}
+mkdir -p "$dir" "$work"
+
+# Obsidian rewrites its workspace files on every device as you click around;
+# syncing them would only produce conflict copies. A file changed on both
+# sides keeps both edits: on Nextcloud the newer one keeps the name and the
+# other is saved next to it as NAME.conflict1.
+args=(bisync vault: "$dir" --workdir "$work"
+  --exclude '/.obsidian/workspace*.json' --exclude '/.trash/**'
+  --resilient --recover --conflict-resolve newer --max-lock 5m -q)
+
+log "syncing $VAULT_WEBDAV_URL with $dir every ${interval}s"
+while :; do
+  # With no listings from a good run (the first start, or after rclone locks a
+  # run out on a critical error) a resync copies whatever is missing each way
+  # and keeps the newer copy of a file that differs. A deleted file can come
+  # back that way, but nothing is lost.
+  resync=()
+  compgen -G "$work/*.path1.lst" >/dev/null || resync=(--resync --resync-mode newer)
+  rclone "${args[@]}" "${resync[@]}" || log "rclone exited $?; trying again in ${interval}s"
+  sleep "$interval"
+done
