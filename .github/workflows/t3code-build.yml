@@ -23,7 +23,9 @@ on:
         default: false
 
 permissions:
-  contents: read
+  actions: write
+  contents: write
+  pull-requests: write
 
 env:
   IMAGE: docker.io/originalbyteme/unraid-t3code
@@ -130,6 +132,16 @@ jobs:
           test "$(docker exec t3 stat -c %u /projects/Hello-World)" = 99
           test "$(docker exec t3 getent passwd t3code | cut -d: -f7)" = /usr/bin/zsh
           docker exec t3 test -f /home/t3code/.oh-my-zsh/oh-my-zsh.sh
+
+      - name: Merge automated bump PR
+        if: github.event_name == 'workflow_dispatch' && startsWith(github.ref_name, 't3-')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          echo "Smoke tests passed. Merging ${{ github.ref_name }} into main..."
+          gh pr merge "${{ github.ref_name }}" --merge --delete-branch
+          echo "Triggering publish on main..."
+          gh workflow run t3code-build.yml --ref main -f publish=true
 
       - name: Publish
         if: inputs.publish || (github.event_name == 'push' && github.ref == 'refs/heads/main')
