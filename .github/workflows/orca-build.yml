@@ -23,7 +23,9 @@ on:
         default: false
 
 permissions:
-  contents: read
+  actions: write
+  contents: write
+  pull-requests: write
   packages: write
 
 env:
@@ -88,6 +90,16 @@ jobs:
             sleep 1
           done
           grep -o 'shell=[^ ]*zsh omz=/home/orca/.oh-my-zsh' term.json || { cat term.json; exit 1; }
+
+      - name: Merge automated bump PR
+        if: github.event_name == 'workflow_dispatch' && startsWith(github.ref_name, 'orca-')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          echo "Smoke tests passed. Merging ${{ github.ref_name }} into main..."
+          gh pr merge "${{ github.ref_name }}" --merge --delete-branch
+          echo "Triggering publish on main..."
+          gh workflow run orca-build.yml --ref main -f publish=true
 
       - name: Publish
         if: inputs.publish || (github.event_name == 'push' && github.ref == 'refs/heads/main')
