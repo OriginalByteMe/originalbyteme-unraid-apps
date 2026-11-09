@@ -29,6 +29,12 @@ jobs:
           latest=${latest#v}
           if [ "$(printf '%s\n' "$pinned" "$latest" | sort -V | tail -n1)" = "$pinned" ]; then
             echo "Orca $pinned is the latest release"
+            # Publish main again if its version never reached Docker Hub, as when
+            # the publish after an automatic merge failed.
+            if ! curl -fsS -o /dev/null "https://hub.docker.com/v2/repositories/originalbyteme/unraid-orca/tags/$pinned"; then
+              echo "unraid-orca:$pinned is not on Docker Hub; publishing main"
+              gh workflow run orca-build.yml --ref main -f publish=true
+            fi
             exit 0
           fi
           branch=orca-$latest
