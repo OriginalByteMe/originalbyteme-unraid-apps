@@ -97,7 +97,9 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           echo "Smoke tests passed. Merging ${{ github.ref_name }} into main..."
-          gh pr merge "${{ github.ref_name }}" --merge --delete-branch
+          # --repo merges and deletes the branch on GitHub only; without it gh also
+          # switches the checkout to main, which the shallow checkout does not have.
+          gh pr merge "${{ github.ref_name }}" --repo "$GITHUB_REPOSITORY" --merge --delete-branch
           echo "Triggering publish on main..."
           gh workflow run orca-build.yml --ref main -f publish=true
 
