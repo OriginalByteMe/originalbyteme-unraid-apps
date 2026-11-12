@@ -17,6 +17,8 @@ permissions:
 
 jobs:
   bump:
+    # Forks cannot open pull requests with the workflow token or publish images.
+    if: github.repository_owner == 'OriginalByteMe'
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
@@ -50,8 +52,13 @@ jobs:
           git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' \
             commit -qam "Orca $latest"
           git push -qf origin "$branch"
-          gh pr list --state open --json number,headRefName -q '.[] | select(.headRefName | test("^orca-[0-9]")) | .number' |
-            while read -r pr; do gh pr close "$pr" --delete-branch --comment "Superseded by Orca $latest."; done
+          gh pr list --state open --json number,headRefName -q '.[] | select(.headRefName | test("^orca-[0-9]")) | "\(.number) \(.headRefName)"' |
+            while read -r pr old; do
+              # Its held pull_request run would turn red when it closes; see orca-build.yml.
+              gh run list --branch "$old" --event pull_request --status action_required --json databaseId -q '.[].databaseId' < /dev/null |
+                while read -r run; do gh run delete "$run" < /dev/null || true; done
+              gh pr close "$pr" --delete-branch --comment "Superseded by Orca $latest." < /dev/null
+            done
           gh pr create --head "$branch" --title "Orca $latest" \
             --body "Bumps Orca from $pinned to $latest. Release notes: https://github.com/stablyai/orca/releases/tag/v$latest"
           gh workflow run orca-build.yml --ref "$branch"

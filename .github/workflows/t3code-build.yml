@@ -139,6 +139,12 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           echo "Smoke tests passed. Merging ${{ github.ref_name }} into main..."
+          # GitHub holds the bump pull request's own pull_request run for approval
+          # and marks it failed once the pull request merges or closes. Nobody
+          # approves it, since the dispatched run is the test, so delete it.
+          gh run list --repo "$GITHUB_REPOSITORY" --branch "${{ github.ref_name }}" --event pull_request \
+            --status action_required --json databaseId -q '.[].databaseId' |
+            while read -r run; do gh run delete "$run" --repo "$GITHUB_REPOSITORY" < /dev/null || true; done
           # --repo merges and deletes the branch on GitHub only; without it gh also
           # switches the checkout to main, which the shallow checkout does not have.
           gh pr merge "${{ github.ref_name }}" --repo "$GITHUB_REPOSITORY" --merge --delete-branch
@@ -146,7 +152,10 @@ jobs:
           gh workflow run t3code-build.yml --ref main -f publish=true
 
       - name: Publish
-        if: inputs.publish || (github.event_name == 'push' && github.ref == 'refs/heads/main')
+        # Forks have no registry credentials, so only the upstream repository publishes.
+        if: >-
+          github.repository_owner == 'OriginalByteMe'
+          && (inputs.publish || (github.event_name == 'push' && github.ref == 'refs/heads/main'))
         env:
           DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
         run: |
