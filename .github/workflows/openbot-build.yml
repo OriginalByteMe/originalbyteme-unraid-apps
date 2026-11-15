@@ -1,0 +1,147 @@
+name: openbot-build
+
+# Every push and pull request that touches OpenBot builds and smoke-tests the
+# image at the OpenBot version pinned in openbot/Dockerfile. A push to main
+# publishes it to Docker Hub when that has no image for that version yet, which is
+# what merging an openbot-bump pull request does. A manual run with `publish`
+# ticked publishes it regardless. Community Apps reads an image's Last Update
+# date from Docker Hub.
+on:
+  push:
+    paths: &paths
+      - openbot/**
+      - templates/openbot.xml
+      - ca_profile.xml
+      - .github/workflows/openbot-build.yml
+  pull_request:
+    paths: *paths
+  workflow_dispatch:
+    inputs:
+      publish:
+        description: Push the tested image to Docker Hub (adds :latest on main)
+        type: boolean
+        default: false
+
+permissions:
+  actions: write
+  contents: write
+  pull-requests: write
+
+env:
+  IMAGE: docker.io/originalbyteme/unraid-openbot
+
+jobs:
+  image:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Lint
+        run: |
+          shellcheck openbot/entrypoint.sh
+          python3 -c 'import sys, xml.etree.ElementTree as E; [E.parse(f) for f in sys.argv[1:]]' templates/*.xml ca_profile.xml
+
+      - name: Build
+        run: |
+          echo "VERSION=$(sed -n 's/^ARG OPENBOT_VERSION=//p' openbot/Dockerfile)" >> "$GITHUB_ENV"
+          # The template's Extra Parameters, so the tests start OpenBot the way Unraid does.
+          echo "OPTS=$(sed -n 's:.*<ExtraParams>\(.*\)</ExtraParams>.*:\1:p' templates/openbot.xml)" >> "$GITHUB_ENV"
+          docker build -t unraid-openbot:test openbot
+
+      - name: OpenBot's account is 99:100, or PUID and PGID
+        run: |
+          test "$(docker run --rm unraid-openbot:test sh -c 'echo "$(id -u):$(id -g)"')" = 99:100
+          test "$(docker run --rm -e PUID=1234 -e PGID=4321 unraid-openbot:test sh -c 'echo "$(id -u):$(id -g)"')" = 1234:4321
+
+      - name: OpenBot starts with the template's settings and keeps devices on OpenBot's network
+        run: |
+          # shellcheck disable=SC2086
+          docker run -d --name openbot $OPTS unraid-openbot:test
+          for _ in $(seq 60); do docker exec openbot openbot status > status.txt 2>&1 && break; sleep 2; done
+          docker logs openbot > openbot.log 2>&1
+          cat status.txt
+          grep '\[unraid-openbot\]' openbot.log || true
+          grep -qx "OpenBot $VERSION" status.txt
+          grep -q '^Account: signed out' status.txt
+          test "$(docker exec openbot stat -c %u:%g /data)" = 99:100
+          test "$(docker exec openbot sh -c 'ps -o uid= -p "$(pgrep -o -f /opt/OpenBot/app/openbot)"' | tr -d ' ')" = 99
+          docker exec openbot cat /data/.config/OpenBot/openbot-remote-network-route-v1.json | jq -e '.version == 1 and .route == "openbot"'
+          test "$(grep -c '\[unraid-openbot\] WARNING' openbot.log)" = 0
+
+      - name: TAILSCALE=true switches to the Private network, warns without a tailnet address, and false switches back
+        run: |
+          # The route OpenBot has once it answers, so the check also sees that OpenBot keeps it.
+          route() {
+            for _ in $(seq 60); do docker exec openbot-ts openbot status >/dev/null 2>&1 && break; sleep 2; done
+            docker exec openbot-ts cat /data/.config/OpenBot/openbot-remote-network-route-v1.json | jq -r .route
+          }
+          # shellcheck disable=SC2086
+          docker run -d --name openbot-ts -e TAILSCALE=true -v openbot-ts:/data $OPTS unraid-openbot:test
+          test "$(route)" = private
+          test "$(docker logs openbot-ts 2>&1 | grep -c '\[unraid-openbot\] WARNING: TAILSCALE is true')" = 1
+          docker rm -f openbot-ts
+          # shellcheck disable=SC2086
+          docker run -d --name openbot-ts -e TAILSCALE=false -v openbot-ts:/data $OPTS unraid-openbot:test
+          test "$(route)" = openbot
+
+      # Unraid's own hook, started as Unraid starts it with Use Tailscale on and
+      # userspace networking off. It runs only as root, uses the Tailscale in the
+      # image, and then waits for the container to be approved on a tailnet.
+      - name: Unraid's Use Tailscale hook starts Tailscale on a tunnel device
+        run: |
+          curl -fsSL -o hook https://raw.githubusercontent.com/unraid/webgui/master/share/docker/tailscale_container_hook
+          chmod +x hook
+          entry=$(docker image inspect unraid-openbot:test --format '{{join .Config.Entrypoint " "}}')
+          # shellcheck disable=SC2086
+          docker run -d --name openbot-hook $OPTS --cap-add=NET_ADMIN --device=/dev/net/tun \
+            --entrypoint /opt/unraid/tailscale -v "$PWD/hook:/opt/unraid/tailscale:ro" -e ORG_ENTRYPOINT="$entry" \
+            -e TAILSCALE_HOSTNAME=openbot-ci -e TAILSCALE_STATE_DIR=/data/.tailscale_state \
+            -e TAILSCALE_USERSPACE_NETWORKING=false unraid-openbot:test
+          for _ in $(seq 60); do
+            docker logs openbot-hook > hook.log 2>&1
+            grep -q 'To authenticate, visit' hook.log && break
+            sleep 2
+          done
+          # The approval link would add this runner to a tailnet; keep it out of this public log.
+          grep -v 'login.tailscale.com' hook.log
+          grep -q 'To authenticate, visit' hook.log
+          test "$(grep -c -e ERROR -e 'Tailscale not found' hook.log)" = 0
+          docker exec openbot-hook test -d /sys/class/net/tailscale0
+
+      - name: Merge automated bump PR
+        if: github.event_name == 'workflow_dispatch' && startsWith(github.ref_name, 'openbot-')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          echo "Smoke tests passed. Merging ${{ github.ref_name }} into main..."
+          # GitHub holds the bump pull request's own pull_request run for approval
+          # and marks it failed once the pull request merges or closes. Nobody
+          # approves it, since the dispatched run is the test, so delete it.
+          gh run list --repo "$GITHUB_REPOSITORY" --branch "${{ github.ref_name }}" --event pull_request \
+            --status action_required --json databaseId -q '.[].databaseId' |
+            while read -r run; do gh run delete "$run" --repo "$GITHUB_REPOSITORY" < /dev/null || true; done
+          # --repo merges and deletes the branch on GitHub only; without it gh also
+          # switches the checkout to main, which the shallow checkout does not have.
+          gh pr merge "${{ github.ref_name }}" --repo "$GITHUB_REPOSITORY" --merge --delete-branch
+          echo "Triggering publish on main..."
+          gh workflow run openbot-build.yml --ref main -f publish=true
+
+      - name: Publish
+        # Forks have no registry credentials, so only the upstream repository publishes.
+        if: >-
+          github.repository_owner == 'OriginalByteMe'
+          && (inputs.publish || (github.event_name == 'push' && github.ref == 'refs/heads/main'))
+        env:
+          DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+        run: |
+          echo "$DOCKERHUB_TOKEN" | docker login docker.io -u originalbyteme --password-stdin
+          if [ "$GITHUB_EVENT_NAME" = push ] && docker manifest inspect "$IMAGE:$VERSION" >/dev/null 2>&1; then
+            echo "$IMAGE:$VERSION is already published"
+            exit 0
+          fi
+          tags="$IMAGE:$VERSION"
+          if [ "$GITHUB_REF" = refs/heads/main ]; then tags="$tags $IMAGE:latest"; fi
+          for tag in $tags; do
+            docker tag unraid-openbot:test "$tag"
+            docker push "$tag"
+          done

@@ -1,0 +1,71 @@
+name: openbot-bump
+
+# Every 6 hours, compares OpenBot's latest stable release with the version pinned
+# in openbot/Dockerfile. When it is newer and OpenBot has published its image,
+# opens a pull request that bumps the pin, closes older bump pull requests, and
+# runs openbot-build.yml on the branch, since a pull request opened with the
+# workflow token does not trigger it. Closing a bump pull request skips that
+# version. Merging one publishes the image.
+on:
+  schedule:
+    - cron: "11 */6 * * *"
+  workflow_dispatch:
+
+permissions:
+  actions: write
+  contents: write
+  pull-requests: write
+
+jobs:
+  bump:
+    # Forks cannot open pull requests with the workflow token or publish images.
+    if: github.repository_owner == 'OriginalByteMe'
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          pinned=$(sed -n 's/^ARG OPENBOT_VERSION=//p' openbot/Dockerfile)
+          # The latest release, which excludes the prerelease runtime and phone app tags.
+          latest=$(gh release view --repo nightly-labs/openbot --json tagName -q .tagName)
+          latest=${latest#v}
+          if [ "$(printf '%s\n' "$pinned" "$latest" | sort -V | tail -n1)" = "$pinned" ]; then
+            echo "OpenBot $pinned is the latest release"
+            # Publish main again if its version never reached Docker Hub, as when
+            # the publish after an automatic merge failed. Only a 404 counts: a
+            # rebuild pushes a new digest under the same tags, so a 429 or 5xx must
+            # not make Unraid offer everyone an update that isn't one.
+            tag_url="https://hub.docker.com/v2/repositories/originalbyteme/unraid-openbot/tags/$pinned"
+            if [ "$(curl -s -o /dev/null -w '%{http_code}' "$tag_url")" = 404 ]; then
+              echo "unraid-openbot:$pinned is not on Docker Hub; publishing main"
+              gh workflow run openbot-build.yml --ref main -f publish=true
+            fi
+            exit 0
+          fi
+          # OpenBot builds its image after the release; the next run picks it up.
+          if ! docker manifest inspect "ghcr.io/nightly-labs/openbot:$latest" >/dev/null 2>&1; then
+            echo "ghcr.io/nightly-labs/openbot:$latest is not published yet"
+            exit 0
+          fi
+          branch=openbot-$latest
+          if [ -n "$(gh pr list --head "$branch" --state all --json number -q '.[].number')" ]; then
+            echo "$branch already has a pull request"
+            exit 0
+          fi
+          sed -i "s/^ARG OPENBOT_VERSION=.*/ARG OPENBOT_VERSION=$latest/" openbot/Dockerfile
+          git switch -c "$branch"
+          git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' \
+            commit -qam "OpenBot $latest"
+          git push -qf origin "$branch"
+          gh pr list --state open --json number,headRefName -q '.[] | select(.headRefName | test("^openbot-[0-9]")) | "\(.number) \(.headRefName)"' |
+            while read -r pr old; do
+              # Its held pull_request run would turn red when it closes; see openbot-build.yml.
+              gh run list --branch "$old" --event pull_request --status action_required --json databaseId -q '.[].databaseId' < /dev/null |
+                while read -r run; do gh run delete "$run" < /dev/null || true; done
+              gh pr close "$pr" --delete-branch --comment "Superseded by OpenBot $latest." < /dev/null
+            done
+          gh pr create --head "$branch" --title "OpenBot $latest" \
+            --body "Bumps OpenBot from $pinned to $latest. Release notes: https://github.com/nightly-labs/openbot/releases/tag/v$latest"
+          gh workflow run openbot-build.yml --ref "$branch"
