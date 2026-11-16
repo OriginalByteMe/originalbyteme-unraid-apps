@@ -97,6 +97,7 @@ ENV HOME=/home/t3code \
 
 COPY --chmod=0755 entrypoint.sh /usr/local/bin/entrypoint
 COPY --chmod=0755 vault-sync /usr/local/bin/vault-sync
+COPY --chmod=0755 omp-model-refresh /usr/local/bin/omp-model-refresh
 COPY --from=common --chmod=0755 onboard /usr/local/bin/onboard
 EXPOSE 3773
 ENTRYPOINT ["/usr/bin/tini", "--", "/usr/local/bin/entrypoint"]

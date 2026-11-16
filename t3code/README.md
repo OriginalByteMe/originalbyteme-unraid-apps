@@ -126,6 +126,7 @@ T3 Connect account.
 | Shell | `SHELL` | `bash`, `zsh` or `fish` for T3 Code's terminals and the console. `tmux` is installed too |
 | Oh My Zsh | `OH_MY_ZSH` | `true` installs Oh My Zsh into the Data folder on the next start, keeping an existing `.zshrc` as `.zshrc.pre-oh-my-zsh` |
 | Git user name / email | `GIT_USER_NAME`, `GIT_USER_EMAIL` | Identity on the agents' commits |
+| omp model refresh | `OMP_MODEL_REFRESH` | Off unless you fill it in. Space-separated `profile` or `profile:provider` words, such as `local:unsloth`, whose model lists omp re-reads every 10 minutes. See below |
 | Vault folder URL / user / app password | `VAULT_WEBDAV_URL`, `VAULT_WEBDAV_USER`, `VAULT_WEBDAV_PASS` | Off unless you fill them in. See below |
 | Docker socket | `/var/run/docker.sock` | Off unless you fill it in. See below |
 | libvirt socket | `/var/run/libvirt/libvirt-sock` | Off unless you fill it in. See below |
@@ -162,6 +163,23 @@ updates:
   T3 Code's [provider setup](https://github.com/pingdotgg/t3code/blob/main/docs/user/install.md#providers).
 - Antigravity, and agents from the ACP Registry, install from **Settings →
   Providers** in T3 Code.
+
+## omp model refresh
+
+omp keeps a provider's model list for two hours and only looks at it when an
+`omp` process starts, so a model you download into Unsloth Studio, or any
+provider whose models omp discovers, takes hours to show up in omp and in T3
+Code. Fill in **omp model refresh** to have a background job run
+`omp --profile PROFILE models refresh [PROVIDER]` every 10 minutes (set
+`OMP_MODEL_REFRESH_INTERVAL` in seconds to change that). It needs `omp` in
+**Agents**.
+
+- Each word is `profile` or `profile:provider`, separated by spaces or commas:
+  `local:unsloth` refreshes only the `unsloth` provider of omp's `local`
+  profile, `local` refreshes all of that profile's providers, and `default`
+  is omp's own profile.
+- A refresh that fails shows up in the container log as an `omp model refresh:`
+  line naming the word and omp's exit code, and is tried again on the next round.
 
 ## Docker and VM access
 
