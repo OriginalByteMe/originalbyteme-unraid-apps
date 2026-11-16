@@ -136,5 +136,12 @@ if [ -n "${VAULT_WEBDAV_URL:-}" ]; then
   as_t3 vault-sync &
 fi
 
+# OMP_MODEL_REFRESH: omp provider profiles to re-read the model list of every
+# OMP_MODEL_REFRESH_INTERVAL seconds, such as `local:unsloth`. omp only checks on
+# start-up and only when its list is over two hours old.
+if [ -n "${OMP_MODEL_REFRESH:-}" ]; then
+  as_t3 omp-model-refresh &
+fi
+
 log "starting t3 serve on port 3773; run t3 pair in the Console for a pairing token"
 exec "${drop[@]}" "$t3" serve --host 0.0.0.0 --port 3773 /projects

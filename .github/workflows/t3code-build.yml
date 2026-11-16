@@ -38,7 +38,7 @@ jobs:
 
       - name: Lint
         run: |
-          shellcheck t3code/entrypoint.sh t3code/vault-sync
+          shellcheck t3code/entrypoint.sh t3code/vault-sync t3code/omp-model-refresh
           python3 -c 'import sys, xml.etree.ElementTree as E; [E.parse(f) for f in sys.argv[1:]]' templates/*.xml ca_profile.xml
 
       - name: Build
