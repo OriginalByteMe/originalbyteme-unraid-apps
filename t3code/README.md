@@ -29,6 +29,7 @@ and that can change with any release.
   containers and VMs.
 - Ships rsync next to git and ssh, so agents can copy files to and from other
   machines.
+- Ships make, so agents can run a repository's Makefile targets.
 - Can keep a Nextcloud folder, such as an Obsidian vault, synced both ways with
   `~/vault`, so agents read and write your notes.
 
