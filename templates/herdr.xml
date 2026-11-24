@@ -1,0 +1,41 @@
+<?xml version="1.0"?>
+<Container version="2">
+  <Name>Herdr</Name>
+  <Repository>originalbyteme/unraid-herdr:latest</Repository>
+  <Registry>https://hub.docker.com/r/originalbyteme/unraid-herdr</Registry>
+  <Network>bridge</Network>
+  <MyIP/>
+  <Shell>bash</Shell>
+  <Privileged>false</Privileged>
+  <Support>https://github.com/OriginalByteMe/originalbyteme-unraid-apps/issues</Support>
+  <Project>https://github.com/OriginalByteMe/originalbyteme-unraid-apps/tree/main/herdr</Project>
+  <ReadMe>https://raw.githubusercontent.com/OriginalByteMe/originalbyteme-unraid-apps/main/herdr/README.md</ReadMe>
+  <Overview>Unofficial Unraid image for Herdr (herdr.dev, github.com/herdrdev/herdr), the runtime your coding agents live on: a terminal workspace that keeps Claude Code, Codex, OpenCode and other agents running in a background server, marks each pane working, blocked or idle, and is customised through config.toml and plugins. This container runs Herdr's headless server on your Unraid box behind an SSH server, so you attach from any machine with herdr --remote, or add it as a saved machine, and your agents keep working when you disconnect. The image installs agent CLIs by name, clones your GitHub repositories into a Projects folder, gives the terminals bash, zsh or fish, and works with Unraid's Use Tailscale switch.</Overview>
+  <Category>AI: Tools:Utilities</Category>
+  <Requires>Herdr installed on the machine you attach from, an SSH public key for that machine, and an account or API key for each agent you use.</Requires>
+  <Changes>
+### 2026-11-24
+- First release, with Herdr 0.9.5.
+  </Changes>
+  <WebUI/>
+  <TemplateURL>https://raw.githubusercontent.com/OriginalByteMe/originalbyteme-unraid-apps/main/templates/herdr.xml</TemplateURL>
+  <Icon>https://raw.githubusercontent.com/OriginalByteMe/originalbyteme-unraid-apps/main/herdr/icon.png</Icon>
+  <ExtraSearchTerms>herdr herder agents claude claude-code codex cursor opencode pi gemini omp terminal tmux multiplexer ssh ai coding headless remote tailscale</ExtraSearchTerms>
+  <PostArgs/>
+  <TailscaleHostname>herdr</TailscaleHostname>
+  <TailscaleStateDir>/home/herdr/.tailscale_state</TailscaleStateDir>
+  <Config Name="SSH port" Target="2222" Default="2222" Mode="tcp" Description="Port herdr --remote connects to over SSH, as user herdr." Type="Port" Display="always" Required="true" Mask="false">2222</Config>
+  <Config Name="Data" Target="/home/herdr" Default="/mnt/user/appdata/herdr" Mode="rw" Description="Herdr's config, plugins and saved sessions, SSH host keys, agent logins and shell settings." Type="Path" Display="always" Required="true" Mask="false">/mnt/user/appdata/herdr</Config>
+  <Config Name="Projects" Target="/projects" Default="/mnt/user/appdata/herdr/projects" Mode="rw" Description="Your repositories, at /projects in the container. Point it at any share." Type="Path" Display="always" Required="true" Mask="false">/mnt/user/appdata/herdr/projects</Config>
+  <Config Name="Authorized keys" Target="AUTHORIZED_KEYS" Default="" Mode="" Description="SSH public keys allowed to log in as herdr, one per line (the contents of ~/.ssh/id_ed25519.pub). Added to ~/.ssh/authorized_keys on each start. Password login is off." Type="Variable" Display="always" Required="true" Mask="false"/>
+  <Config Name="GitHub token" Target="GH_TOKEN" Default="" Mode="" Description="Optional. A GitHub token git and gh use for cloning, pushing and pull requests." Type="Variable" Display="always" Required="false" Mask="true"/>
+  <Config Name="Repositories" Target="GIT_REPOS" Default="" Mode="" Description="Optional. Space-separated owner/name (GitHub) or clone URLs, each cloned once into /projects." Type="Variable" Display="always" Required="false" Mask="false"/>
+  <Config Name="Agents" Target="AGENTS" Default="claude codex" Mode="" Description="Space-separated agent CLIs installed once into the Data folder: claude, codex, gemini, omp, opencode, pi, or any npm package name. Log in to each one once from a Herdr pane or the console." Type="Variable" Display="always" Required="false" Mask="false">claude codex</Config>
+  <Config Name="Shell" Target="SHELL" Default="bash|zsh|fish" Mode="" Description="Shell for Herdr's panes and the console." Type="Variable" Display="always" Required="true" Mask="false">bash</Config>
+  <Config Name="Git user name" Target="GIT_USER_NAME" Default="" Mode="" Description="Optional. Name on the agents' commits." Type="Variable" Display="advanced" Required="false" Mask="false"/>
+  <Config Name="Git user email" Target="GIT_USER_EMAIL" Default="" Mode="" Description="Optional. Email on the agents' commits." Type="Variable" Display="advanced" Required="false" Mask="false"/>
+  <Config Name="Docker socket" Target="/var/run/docker.sock" Default="" Mode="rw" Description="Optional. Enter /var/run/docker.sock to let agents create and manage containers. This gives the agents root-level control of this server." Type="Path" Display="advanced" Required="false" Mask="false"/>
+  <Config Name="libvirt socket" Target="/var/run/libvirt/libvirt-sock" Default="" Mode="rw" Description="Optional. Enter /var/run/libvirt/libvirt-sock to let agents start and manage VMs with virsh. This gives the agents root-level control of this server." Type="Path" Display="advanced" Required="false" Mask="false"/>
+  <Config Name="PUID" Target="PUID" Default="99" Mode="" Description="User ID the agents run as." Type="Variable" Display="advanced" Required="true" Mask="false">99</Config>
+  <Config Name="PGID" Target="PGID" Default="100" Mode="" Description="Group ID the agents run as." Type="Variable" Display="advanced" Required="true" Mask="false">100</Config>
+</Container>
