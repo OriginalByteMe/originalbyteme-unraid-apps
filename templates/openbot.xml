@@ -10,10 +10,13 @@
   <Support>https://github.com/OriginalByteMe/originalbyteme-unraid-apps/issues</Support>
   <Project>https://github.com/OriginalByteMe/originalbyteme-unraid-apps/tree/main/openbot</Project>
   <ReadMe>https://raw.githubusercontent.com/OriginalByteMe/originalbyteme-unraid-apps/main/openbot/README.md</ReadMe>
-  <Overview>Unofficial Unraid image for OpenBot (openbot.run, github.com/nightly-labs/openbot), Nightly Labs' workspace for a team of AI agents such as Claude Code, Codex, Gemini, OpenCode, Pi, Hermes Agent or a model on your own Ollama server. This container runs OpenBot's official server image, so the agents, their workspaces, chats and files live on your server while the OpenBot desktop app, phone app or openbot.run/app reach it through your OpenBot account. After installing, open the Console and run openbot login. On top of the official image, it runs OpenBot as Unraid's usual 99:100 account, works with Unraid's Use Tailscale switch, and has a Tailscale setting that keeps every device connection on your tailnet instead of OpenBot's relay. OpenBot is free for noncommercial use only (PolyForm Noncommercial 1.0.0).</Overview>
+  <Overview>Unofficial Unraid image for OpenBot (openbot.run, github.com/nightly-labs/openbot), Nightly Labs' workspace for a team of AI agents such as Claude Code, Codex, Gemini, OpenCode, Pi, Hermes Agent or a model on your own Ollama server. This container runs OpenBot's official server image, so the agents, their workspaces, chats and files live on your server while the OpenBot desktop app, phone app or openbot.run/app reach it through your OpenBot account. After installing, open the Console and run openbot login. On top of the official image, it runs OpenBot as Unraid's usual 99:100 account, works with Unraid's Use Tailscale switch, and has a Tailscale setting that keeps every device connection on your tailnet instead of OpenBot's relay. OpenBot is free for noncommercial use only (PolyForm Noncommercial 1.0.0). The first time you open the Console, it walks you through signing the server in to OpenBot and GitHub; run onboard to do it again.</Overview>
   <Category>AI: Tools:Utilities</Category>
   <Requires>An OpenBot account (free, signed in with an email code) and an account or API key for each AI provider you connect. For the Tailscale setting: Unraid 7 or later, and Tailscale on every device that connects.</Requires>
   <Changes>
+### 2026-11-24
+- The Console signs you in on first use: OpenBot, and GitHub through the GitHub CLI, now in the image. Run `onboard` to go through it again.
+
 ### 2026-11-15
 - First release, with OpenBot 0.71.0.
   </Changes>

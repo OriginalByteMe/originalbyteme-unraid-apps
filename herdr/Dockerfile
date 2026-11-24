@@ -62,7 +62,7 @@ RUN set -eux; \
 # SSH sessions get their environment from PAM's /etc/environment, not Docker's.
 RUN useradd --no-log-init -u 99 -g users -m -d /home/herdr -s /bin/bash herdr \
  && install -d -o herdr -g users /projects \
- && echo '[ "$(id -u)" = 0 ] && export SHELL="$(getent passwd herdr | cut -d: -f7)" && exec setpriv --reuid="$(id -u herdr)" --regid="$(id -g herdr)" --init-groups "$SHELL"' >> /etc/bash.bashrc \
+ && echo '[ "$(id -u)" = 0 ] && export SHELL="$(getent passwd herdr | cut -d: -f7)" && exec setpriv --reuid="$(id -u herdr)" --regid="$(id -g herdr)" --init-groups onboard --console' >> /etc/bash.bashrc \
  && printf '%s\n' 'PATH="/home/herdr/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"' \
       'NPM_CONFIG_PREFIX="/home/herdr/.local"' 'LANG="en_US.UTF-8"' > /etc/environment \
  && rm -f /etc/ssh/ssh_host_* \
@@ -78,5 +78,6 @@ ENV HOME=/home/herdr \
     PGID=100
 
 COPY --chmod=0755 entrypoint.sh /usr/local/bin/entrypoint
+COPY --from=common --chmod=0755 onboard /usr/local/bin/onboard
 EXPOSE 2222
 ENTRYPOINT ["/usr/bin/tini", "--", "/usr/local/bin/entrypoint"]

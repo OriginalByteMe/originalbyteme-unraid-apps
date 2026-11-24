@@ -9,6 +9,7 @@ name: t3code-build
 on:
   push:
     paths: &paths
+      - common/**
       - t3code/**
       - templates/t3code.xml
       - ca_profile.xml
@@ -38,13 +39,13 @@ jobs:
 
       - name: Lint
         run: |
-          shellcheck t3code/entrypoint.sh t3code/vault-sync
+          shellcheck t3code/entrypoint.sh t3code/vault-sync common/onboard
           python3 -c 'import sys, xml.etree.ElementTree as E; [E.parse(f) for f in sys.argv[1:]]' templates/*.xml ca_profile.xml
 
       - name: Build
         run: |
           echo "VERSION=$(sed -n 's/^ARG T3CODE_VERSION=//p' t3code/Dockerfile)" >> "$GITHUB_ENV"
-          docker build -t unraid-t3code:test t3code
+          docker build --build-context common=common -t unraid-t3code:test t3code
 
       - name: PUID and PGID move the t3code account
         run: |
@@ -132,6 +133,19 @@ jobs:
           test "$(docker exec t3 stat -c %u /projects/Hello-World)" = 99
           test "$(docker exec t3 getent passwd t3code | cut -d: -f7)" = /usr/bin/zsh
           docker exec t3 test -f /home/t3code/.oh-my-zsh/oh-my-zsh.sh
+
+      - name: The Console walks through the sign-ins on its first open only, then opens the shell
+        run: |
+          console() {
+            { printf 'n\n%.0s' $(seq 6); echo 'echo "shell as $(id -un)"; exit'; } |
+              script -qec 'docker exec -it t3 bash' /dev/null
+          }
+          console | tee first.out
+          console | tee second.out
+          grep -q '\[ \] GitHub' first.out
+          grep -q 'paired sessions' first.out
+          test "$(grep -c GitHub second.out)" = 0
+          grep -q 'shell as t3code' second.out
 
       - name: Merge automated bump PR
         if: github.event_name == 'workflow_dispatch' && startsWith(github.ref_name, 't3-')

@@ -11,9 +11,11 @@ USER root
 # download on every start; the hook only needs jq and both binaries in /usr/bin.
 RUN set -eux; \
     curl -fsSL https://pkgs.tailscale.com/stable/ubuntu/noble.noarmor.gpg -o /usr/share/keyrings/tailscale.gpg; \
+    curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg -o /usr/share/keyrings/github-cli.gpg; \
     echo "deb [signed-by=/usr/share/keyrings/tailscale.gpg] https://pkgs.tailscale.com/stable/ubuntu noble main" > /etc/apt/sources.list.d/tailscale.list; \
+    echo "deb [signed-by=/usr/share/keyrings/github-cli.gpg] https://cli.github.com/packages stable main" > /etc/apt/sources.list.d/github-cli.list; \
     apt-get update; \
-    apt-get install -y --no-install-recommends jq tailscale; \
+    apt-get install -y --no-install-recommends jq tailscale gh; \
     rm -rf /var/lib/apt/lists/*; \
     test -x /usr/bin/tailscaled || ln -s /usr/sbin/tailscaled /usr/bin/tailscaled
 
@@ -23,11 +25,12 @@ RUN set -eux; \
 # home, the Data folder; `sh` still gives a root shell.
 RUN usermod -u 99 -g 100 openbot \
  && chown 99:100 /data /run/openbot \
- && echo '[ "$(id -u)" = 0 ] && exec setpriv --reuid="$(id -u openbot)" --regid="$(id -g openbot)" --init-groups bash' >> /etc/bash.bashrc
+ && echo '[ "$(id -u)" = 0 ] && exec setpriv --reuid="$(id -u openbot)" --regid="$(id -g openbot)" --init-groups onboard --console' >> /etc/bash.bashrc
 
 ENV HOME=/data \
     PUID=99 \
     PGID=100
 
 COPY --chmod=0755 entrypoint.sh /usr/local/bin/entrypoint
+COPY --from=common --chmod=0755 onboard /usr/local/bin/onboard
 ENTRYPOINT ["/usr/bin/tini", "--", "/usr/local/bin/entrypoint"]

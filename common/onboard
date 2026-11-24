@@ -1,0 +1,172 @@
+#!/bin/bash
+set -uo pipefail
+
+app=openbot
+command -v herdr >/dev/null && app=herdr
+command -v t3 >/dev/null && app=t3code
+first_run_done=$HOME/.config/onboard/done
+
+banner() {
+  cat <<EOF
+
+      .%%%%%%%%%%.
+    .%%%%%%%%%%%%%%.      A F R O   C O M P U T E R   M A N
+   %%%%%%%%%%%%%%%%%%     =====================================
+   %%%%/ o    o \%%%%     $app  ::  unraid onboarding
+    %%%|   __   |%%%      sign in once, it stays in appdata
+        \______/
+       [=| >_ |=]
+EOF
+}
+
+rule() {
+  local line
+  printf -v line '%*s' $((60 - ${#1})) ''
+  printf '\n  -- %s %s\n' "$1" "${line// /-}"
+}
+row() { printf '   [%s] %-13s %s\n' "$1" "$2" "${3:-}"; }
+info() { printf '       %-13s %s\n' "$1" "$2"; }
+more() { printf '%21s%s\n' '' "$1"; }
+want() {
+  local reply
+  read -r -p "       $1 [Y/n] " reply || { echo; return 1; }
+  [[ ! $reply =~ ^[Nn] ]]
+}
+
+clone() {
+  local repo url dir out
+  for repo in ${GIT_REPOS:-}; do
+    case "$repo" in
+      *://* | git@*) url=$repo ;;
+      *) url="https://github.com/$repo.git" ;;
+    esac
+    dir="/projects/$(basename "$repo" .git)"
+    if [ ! -d "$dir/.git" ] && ! GIT_TERMINAL_PROMPT=0 git clone --quiet "$url" "$dir"; then
+      echo "[unraid-$app] WARNING: could not clone $repo"
+      continue
+    fi
+    [ "$app" = t3code ] || continue
+    if out=$(/opt/t3code/t3 project add "$dir" 2>&1); then
+      echo "[unraid-$app] added $dir to T3 Code"
+    elif ! grep -q ProjectAlreadyExistsError <<<"$out"; then
+      echo "[unraid-$app] WARNING: could not add $dir to T3 Code: $(grep -m 1 ERROR <<<"$out" || tail -n 1 <<<"$out")"
+    fi
+  done
+}
+
+cloned() {
+  local repo total=0 have=0
+  for repo in ${GIT_REPOS:-}; do
+    total=$((total + 1))
+    [ -d "/projects/$(basename "$repo" .git)/.git" ] && have=$((have + 1))
+  done
+  row "$([ "$have" = "$total" ] && echo x || echo ' ')" Repositories "$have of $total cloned into /projects"
+}
+
+device_code() {
+  local line code=
+  while IFS= read -r line; do
+    case $line in
+      *clipboard* | *'expiring tokens'* | '') ;;
+      *'one-time code: '*) code=${line##* } ;;
+      'Open this URL'*) row '>' "$1" "${line##* }" && more "code  $code" ;;
+      *) printf '%21s%s\n' '' "$line" ;;
+    esac
+  done
+}
+
+github() {
+  if ! gh auth status --hostname github.com >/dev/null 2>&1; then
+    row ' ' GitHub 'not signed in'
+    want 'Sign in to GitHub now?' || return
+    gh auth login --hostname github.com --git-protocol https --web --scopes workflow </dev/null 2>&1 |
+      device_code GitHub
+    gh auth status --hostname github.com >/dev/null 2>&1 || { row ' ' GitHub 'sign-in did not finish'; return; }
+  fi
+  gh auth setup-git
+  [ -n "$(git config --global user.name)" ] ||
+    git config --global user.name "$(gh api user --jq '.name // .login')"
+  [ -n "$(git config --global user.email)" ] ||
+    git config --global user.email "$(gh api user --jq '.email // "\(.id)+\(.login)@users.noreply.github.com"')"
+  row x GitHub "signed in as $(gh api user --jq .login)"
+  row x Git "$(git config --global user.name) <$(git config --global user.email)>"
+  [ -z "${GIT_REPOS:-}" ] || { clone; cloned; }
+}
+
+signin() {
+  local name=$1 status=$2 login=$3
+  if bash -c "$status" >/dev/null 2>&1; then
+    row x "$name" 'signed in'
+    return
+  fi
+  row ' ' "$name" 'not signed in'
+  want "Sign in to $name now?" && bash -c "$login"
+  if bash -c "$status" >/dev/null 2>&1; then
+    row x "$name" 'signed in'
+  else
+    row ' ' "$name" "later: $login"
+  fi
+}
+
+ssh_keys() {
+  local keys=$HOME/.ssh/authorized_keys key count
+  count=$(grep -cE '^(ssh-|ecdsa-|sk-)' "$keys" 2>/dev/null)
+  if [ "${count:-0}" -eq 0 ]; then
+    row ' ' 'SSH keys' 'none yet, so nobody can attach'
+    read -r -p '       Paste a public key (blank to skip): ' key || echo
+    [[ ${key:-} =~ ^(ssh-|ecdsa-|sk-) ]] || return
+    echo "$key" >> "$keys"
+    count=1
+  fi
+  row x 'SSH keys' "$count authorized"
+}
+
+pair() {
+  local count
+  count=$(t3 auth session list --json 2>/dev/null | jq length 2>/dev/null)
+  row "$([ "${count:-0}" -gt 0 ] && echo x || echo ' ')" 'T3 Code' "${count:-0} paired sessions"
+  want 'Make a pairing token for a new device?' || return
+  t3 pair
+  more 'Paste the Token at http://<server>:3773 or in the app'
+  more 'under Add environment. It works once, for 5 minutes.'
+}
+
+main() {
+  local bin
+  banner
+  rule 'Sign in'
+  command -v gh >/dev/null && github
+  command -v claude >/dev/null && signin 'Claude Code' 'claude auth status' 'claude auth login'
+  command -v codex >/dev/null && signin Codex 'codex login status' 'codex login --device-auth'
+  command -v openbot >/dev/null &&
+    signin OpenBot "openbot status | grep '^Account:' | grep -qv 'signed out'" 'openbot login --name Unraid'
+  for bin in omp gemini opencode pi; do
+    command -v "$bin" >/dev/null && row - "$bin" "run $bin and sign in from there"
+  done
+  rule 'Connect'
+  case $app in
+    herdr)
+      ssh_keys
+      info Attach 'herdr --remote <host>, with <host> in ~/.ssh/config'
+      more 'pointing at herdr@<server> on port 2222'
+      ;;
+    t3code) pair ;;
+    openbot) info Devices 'run openbot mobile-connect and scan the code' ;;
+  esac
+  rule 'Next'
+  info 'Run again' onboard
+  info 'Saved in' "$HOME, the Data folder"
+  echo
+}
+
+case ${1:-} in
+  clone) clone ;;
+  --console)
+    if [ ! -e "$first_run_done" ] && [ -t 0 ]; then
+      main
+      mkdir -p "${first_run_done%/*}" && touch "$first_run_done"
+    fi
+    exec "${SHELL:-/bin/bash}"
+    ;;
+  *) main ;;
+esac

@@ -84,7 +84,7 @@ RUN set -eux; \
 # `sh` still gives a root shell.
 RUN useradd --no-log-init -u 99 -g users -m -d /home/t3code -s /bin/bash t3code \
  && install -d -o t3code -g users /projects \
- && echo '[ "$(id -u)" = 0 ] && export SHELL="$(getent passwd t3code | cut -d: -f7)" && exec setpriv --reuid="$(id -u t3code)" --regid="$(id -g t3code)" --init-groups "$SHELL"' >> /etc/bash.bashrc
+ && echo '[ "$(id -u)" = 0 ] && export SHELL="$(getent passwd t3code | cut -d: -f7)" && exec setpriv --reuid="$(id -u t3code)" --regid="$(id -g t3code)" --init-groups onboard --console' >> /etc/bash.bashrc
 
 # Docker's default seccomp profile blocks the user namespaces Chrome's sandbox
 # needs, so T3's browser runs without it; the container is the boundary.
@@ -97,5 +97,6 @@ ENV HOME=/home/t3code \
 
 COPY --chmod=0755 entrypoint.sh /usr/local/bin/entrypoint
 COPY --chmod=0755 vault-sync /usr/local/bin/vault-sync
+COPY --from=common --chmod=0755 onboard /usr/local/bin/onboard
 EXPOSE 3773
 ENTRYPOINT ["/usr/bin/tini", "--", "/usr/local/bin/entrypoint"]

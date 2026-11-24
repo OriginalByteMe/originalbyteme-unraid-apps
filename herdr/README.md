@@ -17,6 +17,8 @@ keep working when you disconnect. This project is not affiliated with Herdr.
   across updates.
 - Installs agent CLIs by name, for example `claude codex`, into the Data folder
   so they survive updates.
+- Walks you through every sign-in the first time you open the Console: GitHub
+  and the agents by one-time code, and an SSH key. Logins stay in the Data folder.
 - Clones a list of GitHub repositories into a Projects folder.
 - Offers bash, zsh or fish for the panes.
 - Works with Unraid's **Use Tailscale** switch.
@@ -35,10 +37,16 @@ keep working when you disconnect. This project is not affiliated with Herdr.
 
    Then on the Docker tab choose **Add Container** and pick **Herdr** from the
    user templates.
-2. **Paste your public key** into **Authorized keys**, the contents of
-   `~/.ssh/id_ed25519.pub` on the machine you attach from. Several keys go on
-   separate lines.
-3. **Pick your projects, agents and shell**, then **Apply**.
+2. **Pick your projects, agents and shell**, then **Apply**. Paste your public
+   key into **Authorized keys** now, the contents of `~/.ssh/id_ed25519.pub` on
+   the machine you attach from with several keys on separate lines, or leave it
+   empty and paste it in the next step.
+3. **Open the Console.** The first time, it walks you through every sign-in:
+   GitHub with a one-time code at `https://github.com/login/device`, which also
+   sets your git name and email and clones private repositories, then each
+   agent CLI with a device login, and an SSH key if none is set. Agents such as
+   omp sign in from their own `/login`. Logins are kept in the Data folder, so
+   updates don't sign you out. Run `onboard` to go through it again.
 4. **Attach.** On your own machine, with Herdr installed, add the server to
    `~/.ssh/config`:
 
@@ -52,9 +60,6 @@ keep working when you disconnect. This project is not affiliated with Herdr.
    Then run `herdr --remote unraid-herdr`, or `herdr machine add unraid-herdr`
    to keep it in Herdr's sidebar next to your local work. `ctrl+b q` detaches
    and the agents keep running.
-5. **Log in to each agent once** from a Herdr pane, for example `claude` and
-   then `/login`, or `codex login --device-auth`. Logins are kept in the Data
-   folder.
 
 Herdr's config lives at `~/.config/herdr/config.toml` in the Data folder. After
 editing it, run `herdr server reload-config` in a pane.

@@ -9,6 +9,7 @@ name: openbot-build
 on:
   push:
     paths: &paths
+      - common/**
       - openbot/**
       - templates/openbot.xml
       - ca_profile.xml
@@ -38,7 +39,7 @@ jobs:
 
       - name: Lint
         run: |
-          shellcheck openbot/entrypoint.sh
+          shellcheck openbot/entrypoint.sh common/onboard
           python3 -c 'import sys, xml.etree.ElementTree as E; [E.parse(f) for f in sys.argv[1:]]' templates/*.xml ca_profile.xml
 
       - name: Build
@@ -46,7 +47,7 @@ jobs:
           echo "VERSION=$(sed -n 's/^ARG OPENBOT_VERSION=//p' openbot/Dockerfile)" >> "$GITHUB_ENV"
           # The template's Extra Parameters, so the tests start OpenBot the way Unraid does.
           echo "OPTS=$(sed -n 's:.*<ExtraParams>\(.*\)</ExtraParams>.*:\1:p' templates/openbot.xml)" >> "$GITHUB_ENV"
-          docker build -t unraid-openbot:test openbot
+          docker build --build-context common=common -t unraid-openbot:test openbot
 
       - name: OpenBot's account is 99:100, or PUID and PGID
         run: |
@@ -67,6 +68,19 @@ jobs:
           test "$(docker exec openbot sh -c 'ps -o uid= -p "$(pgrep -o -f /opt/OpenBot/app/openbot)"' | tr -d ' ')" = 99
           docker exec openbot cat /data/.config/OpenBot/openbot-remote-network-route-v1.json | jq -e '.version == 1 and .route == "openbot"'
           test "$(grep -c '\[unraid-openbot\] WARNING' openbot.log)" = 0
+
+      - name: The Console walks through the sign-ins on its first open only, then opens the shell
+        run: |
+          console() {
+            { printf 'n\n%.0s' $(seq 6); echo 'echo "shell as $(id -un)"; exit'; } |
+              script -qec 'docker exec -it openbot bash' /dev/null
+          }
+          console | tee first.out
+          console | tee second.out
+          grep -q '\[ \] GitHub' first.out
+          grep -q '\[ \] OpenBot' first.out
+          test "$(grep -c GitHub second.out)" = 0
+          grep -q 'shell as openbot' second.out
 
       - name: TAILSCALE=true switches to the Private network, warns without a tailnet address, and false switches back
         run: |

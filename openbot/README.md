@@ -25,7 +25,11 @@ so using it for a business needs a license from Nightly Labs.
   Unraid's hook can run, and Tailscale is preinstalled so the hook does not
   download it on every start.
 - The Console button opens a shell as OpenBot's account, so `openbot` commands
-  and provider sign-ins land in the Data folder.
+  and provider sign-ins land in the Data folder. The first time, it walks you
+  through signing the server in to OpenBot and GitHub; run `onboard` to go
+  through it again.
+- The GitHub CLI, so the agents can clone, push and open pull requests once you
+  sign in with a one-time code.
 
 Everything else is the official image: the same OpenBot, started by its own
 start script, with the Electron sandbox on.
@@ -44,9 +48,12 @@ start script, with the Electron sandbox on.
    user templates.
 2. **Choose how your devices connect.** Leave **Tailscale** at `false` to use
    OpenBot's network, or see [Tailscale](#tailscale).
-3. **Apply, then sign the server in.** Open the container's **Console** and run
-   `openbot login --name Unraid`. Enter your OpenBot email, then the code that
-   OpenBot sends to it. `openbot status` shows the account and the server.
+3. **Apply, then sign the server in.** Open the container's **Console**. The
+   first time, it asks to sign the server in to OpenBot (`openbot login --name
+   Unraid`): enter your OpenBot email, then the code that OpenBot sends to it.
+   It also offers GitHub, with a one-time code at
+   `https://github.com/login/device`. `openbot status` shows the account and
+   the server.
 4. **Open OpenBot** on your computer, or at openbot.run/app (the container's
    **WebUI** button), signed in with the same email, and pick **Unraid** from the
    server list.
@@ -209,7 +216,7 @@ and closes its database first, within the 60 seconds the template allows.
 ## Building it yourself
 
 ```sh
-docker build -t unraid-openbot openbot
+docker build --build-context common=common -t unraid-openbot:test openbot
 ```
 
 Every push that touches OpenBot runs `.github/workflows/openbot-build.yml`,

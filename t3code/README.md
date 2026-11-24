@@ -18,6 +18,9 @@ and that can change with any release.
   prints a pairing token for each device.
 - Installs agent CLIs by name, for example `claude codex`, into the Data folder
   so they survive updates.
+- Walks you through every sign-in the first time you open the Console: GitHub
+  and the agents by one-time code, and a pairing token. Logins stay in the Data
+  folder.
 - Clones a list of GitHub repositories into a Projects folder and adds them to
   T3 Code as projects.
 - Offers bash, zsh with optional Oh My Zsh, or fish for the terminals, plus tmux.
@@ -47,22 +50,25 @@ and that can change with any release.
    user templates.
 2. **Point Projects at your code.** The default is a folder inside appdata; any
    share works.
-3. **List your repositories.** Put them under **Repositories** as `owner/name`,
-   and fill in **GitHub token** if any are private. They are cloned and added to
-   T3 Code on the first start, so your projects are waiting when you connect.
+3. **List your repositories.** Put them under **Repositories** as `owner/name`.
+   Public ones are cloned and added to T3 Code on the first start, private ones
+   as soon as you sign in to GitHub in step 5.
 4. **Pick your agents and shell**, for example `claude codex` under **Agents**,
    and `zsh` with **Oh My Zsh** set to `true`.
-5. **Apply and pair.** Open the container's **Console** and run `t3 pair`; it
-   prints a **Token**. Click the container's **WebUI** (`http://<server>:3773`),
+5. **Apply and open the Console.** The first time, it walks you through every
+   sign-in: GitHub with a one-time code at `https://github.com/login/device`,
+   which also sets your git name and email and clones private repositories,
+   then each agent CLI with a device login, and a pairing **Token** for your
+   first device. Click the container's **WebUI** (`http://<server>:3773`),
    paste the token, and that browser is paired. In the desktop or phone app,
    choose **Add environment** and enter `http://<server>:3773` with the token.
-   Each token works once and expires after 5 minutes; run `t3 pair` again for
-   the next device. See [Pairing](#pairing) for why the links it prints don't
-   work as they are.
-6. **Log in to each agent once.** In the Console run, for example, `claude` and
-   then `/login`, or `codex login --device-auth`. Codex can also sign in from
-   **Settings → Providers** in T3 Code. Logins are kept in the Data folder, so
-   updates don't log you out.
+   Each token works once and expires after 5 minutes; run `t3 pair` for the
+   next device. See [Pairing](#pairing) for why the links it prints don't work
+   as they are.
+6. **Sign in to the rest.** Agents such as omp sign in from their own
+   `/login`, and Codex can also sign in from **Settings → Providers** in T3
+   Code. Logins are kept in the Data folder, so updates don't sign you out. Run
+   `onboard` to go through the sign-ins again.
 
 ## Pairing
 
@@ -89,12 +95,13 @@ T3 Connect account.
   start. Adding one later and applying clones only the new one; existing clones
   are never touched or deleted. You can also `git clone` into `/projects` from
   the Console and add it in T3 Code.
-- **Use `owner/name` or HTTPS URLs with a GitHub token.** The token is set up
-  for both git and `gh`, so agents can push and open pull requests. SSH URLs
-  need a key in `~/.ssh` (in the Data folder) and github.com in `known_hosts`;
-  running `ssh -T git@github.com` once from the Console adds it.
-- **Set Git user name and email** in the advanced view, so the agents' commits
-  carry your name.
+- **Use `owner/name` or HTTPS URLs.** Signing in to GitHub from the Console, or
+  a **GitHub token**, sets up both git and `gh`, so agents can push and open
+  pull requests. SSH URLs need a key in `~/.ssh` (in the Data folder) and
+  github.com in `known_hosts`; running `ssh -T git@github.com` once from the
+  Console adds it.
+- **Git user name and email** come from your GitHub account when you sign in.
+  Set them in the advanced view to use others.
 - **Keep Data and Projects on a fast pool.** Worktrees, `node_modules` and agent
   logs are lots of small files, which a cache pool or SSD handles far better
   than the parity array.
@@ -233,7 +240,7 @@ threads after restarts**).
 ## Building it yourself
 
 ```sh
-docker build -t unraid-t3code t3code
+docker build --build-context common=common -t unraid-t3code:test t3code
 ```
 
 Every push that touches T3 Code runs `.github/workflows/t3code-build.yml`,

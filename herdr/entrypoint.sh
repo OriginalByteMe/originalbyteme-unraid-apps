@@ -44,14 +44,7 @@ fi
 [ -z "${GIT_USER_NAME:-}" ] || as_herdr git config --global user.name "$GIT_USER_NAME"
 [ -z "${GIT_USER_EMAIL:-}" ] || as_herdr git config --global user.email "$GIT_USER_EMAIL"
 
-for repo in ${GIT_REPOS:-}; do
-  case "$repo" in
-    *://* | git@*) url=$repo ;;
-    *) url="https://github.com/$repo.git" ;;
-  esac
-  dir="/projects/$(basename "$repo" .git)"
-  [ -d "$dir/.git" ] || as_herdr git clone --quiet "$url" "$dir" || log "WARNING: could not clone $repo"
-done
+as_herdr onboard clone
 
 declare -A npm_name=(
   [claude]=@anthropic-ai/claude-code [codex]=@openai/codex [gemini]=@google/gemini-cli
