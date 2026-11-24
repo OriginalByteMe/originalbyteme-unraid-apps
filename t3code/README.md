@@ -240,7 +240,7 @@ threads after restarts**).
 ## Building it yourself
 
 ```sh
-docker build -t unraid-t3code t3code
+docker build --build-context common=common -t unraid-t3code:test t3code
 ```
 
 Every push that touches T3 Code runs `.github/workflows/t3code-build.yml`,

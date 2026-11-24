@@ -216,7 +216,7 @@ and closes its database first, within the 60 seconds the template allows.
 ## Building it yourself
 
 ```sh
-docker build -t unraid-openbot openbot
+docker build --build-context common=common -t unraid-openbot:test openbot
 ```
 
 Every push that touches OpenBot runs `.github/workflows/openbot-build.yml`,
