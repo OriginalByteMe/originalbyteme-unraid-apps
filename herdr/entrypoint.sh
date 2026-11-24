@@ -77,10 +77,9 @@ as_herdr touch "$keys"
 while IFS= read -r line; do
   [ -z "$line" ] || grep -qxF -- "$line" "$keys" || echo "$line" | as_herdr tee -a "$keys" >/dev/null
 done <<<"${AUTHORIZED_KEYS:-}"
-[ -s "$keys" ] || log "WARNING: no SSH keys; set Authorized keys or add them to $keys"
-
 [ $# -eq 0 ] || exec "${drop[@]}" "$@"
 
+[ -s "$keys" ] || log "WARNING: no SSH keys; set Authorized keys or add them to $keys"
 cd /projects
 as_herdr herdr server >/dev/null 2>&1 &
 log "herdr server started; attach with herdr --remote using port 2222 and user herdr"
