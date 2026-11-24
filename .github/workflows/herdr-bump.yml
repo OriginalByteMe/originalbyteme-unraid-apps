@@ -48,7 +48,12 @@ jobs:
             echo "$branch already has a pull request"
             exit 0
           fi
-          sed -i "s/^ARG HERDR_VERSION=.*/ARG HERDR_VERSION=$latest/" herdr/Dockerfile
+          sum=$(gh release view "v$latest" --repo herdrdev/herdr --json assets \
+            -q '.assets[] | select(.name == "herdr-linux-x86_64") | .digest')
+          sum=${sum#sha256:}
+          [ ${#sum} = 64 ] || { echo "no sha256 digest for herdr-linux-x86_64 in v$latest"; exit 1; }
+          sed -i -e "s/^ARG HERDR_VERSION=.*/ARG HERDR_VERSION=$latest/" \
+            -e "s/^ARG HERDR_SHA256=.*/ARG HERDR_SHA256=$sum/" herdr/Dockerfile
           git switch -c "$branch"
           git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' \
             commit -qam "Herdr $latest"

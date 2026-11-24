@@ -2,8 +2,10 @@
 # amd64 only: Unraid and its Tailscale hook are x86_64.
 FROM ubuntu:24.04
 
-# Pinned; .github/workflows/herdr-bump.yml opens a pull request for each release.
+# Pinned with the digest GitHub records for the asset; .github/workflows/herdr-bump.yml
+# updates both and opens a pull request for each release.
 ARG HERDR_VERSION=0.9.5
+ARG HERDR_SHA256=14d9e8bc8b4a9e0118d77c32266f76d461f09b40342eb23752960bd89f59929d
 ENV DEBIAN_FRONTEND=noninteractive
 
 # GitHub CLI and Tailscale come from their vendors' apt repos. Tailscale is
@@ -26,13 +28,9 @@ RUN set -eux; \
     locale-gen en_US.UTF-8; \
     rm -rf /var/lib/apt/lists/*
 
-# Herdr's Linux binary, checked against the digest GitHub records for the asset.
 RUN set -eux; \
-    asset=herdr-linux-x86_64; \
-    sum=$(curl -fsSL "https://api.github.com/repos/herdrdev/herdr/releases/tags/v${HERDR_VERSION}" \
-      | jq -r --arg a "$asset" '.assets[] | select(.name == $a) | .digest | sub("^sha256:"; "")'); \
-    curl -fsSL -o /usr/local/bin/herdr "https://github.com/herdrdev/herdr/releases/download/v${HERDR_VERSION}/$asset"; \
-    echo "${sum}  /usr/local/bin/herdr" | sha256sum -c -; \
+    curl -fsSL -o /usr/local/bin/herdr "https://github.com/herdrdev/herdr/releases/download/v${HERDR_VERSION}/herdr-linux-x86_64"; \
+    echo "${HERDR_SHA256}  /usr/local/bin/herdr" | sha256sum -c -; \
     chmod 0755 /usr/local/bin/herdr; \
     herdr --version
 
