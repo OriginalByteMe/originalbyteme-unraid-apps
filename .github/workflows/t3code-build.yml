@@ -91,7 +91,7 @@ jobs:
       - name: T3's browser starts and renders text
         run: |
           chrome=$(curl -fsSL "https://raw.githubusercontent.com/pingdotgg/t3code/v$VERSION/apps/server/src/preview/PreviewBrowser.ts" \
-            | sed -n 's/^const VERSION = "\(.*\)";$/\1/p')
+            | sed -n 's/^\(export \)\{0,1\}const VERSION = "\([^"]*\)";$/\2/p')
           test -n "$chrome"
           docker run --rm -e CHROME="$chrome" unraid-t3code:test sh -c '
             cd /tmp &&
