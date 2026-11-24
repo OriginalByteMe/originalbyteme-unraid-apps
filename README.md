@@ -10,6 +10,7 @@ in `templates/`.
 | Orca | `orca serve`, the headless runtime of [Orca](https://www.onorca.dev), which runs coding agents side by side in their own git worktrees | `ghcr.io/originalbyteme/unraid-orca` | [orca/README.md](orca/README.md) |
 | OpenBot | The official server image of [OpenBot](https://openbot.run), a workspace where a team of AI agents (Claude Code, Codex, OpenCode, Pi, Hermes Agent or your own Ollama model) works on your server, reached from its desktop, web and phone apps | `originalbyteme/unraid-openbot` | [openbot/README.md](openbot/README.md) |
 | T3 Code | `t3 serve`, the headless server of [T3 Code](https://t3.codes), a control surface for Claude Code, Codex, Cursor, OpenCode and Pi | `originalbyteme/unraid-t3code` | [t3code/README.md](t3code/README.md) |
+| Herdr | `herdr server` behind SSH, the headless server of [Herdr](https://herdr.dev), a terminal workspace that keeps coding agents running and shows which one needs you; attach with `herdr --remote` | `originalbyteme/unraid-herdr` | [herdr/README.md](herdr/README.md) |
 
 ## Layout
 
@@ -23,13 +24,15 @@ templates/<app>.xml      one Community Apps template per app
 
 ## Support
 
-This repository is not affiliated with Stably (Orca), T3 Tools (T3 Code) or
-Nightly Labs (OpenBot). Report problems with a container in this repository's
+This repository is not affiliated with Stably (Orca), T3 Tools (T3 Code),
+Nightly Labs (OpenBot) or Herdr. Report problems with a container in this
+repository's
 [issues](https://github.com/OriginalByteMe/originalbyteme-unraid-apps/issues),
 and problems with the apps themselves at
 [stablyai/orca](https://github.com/stablyai/orca),
-[pingdotgg/t3code](https://github.com/pingdotgg/t3code) or
-[nightly-labs/openbot](https://github.com/nightly-labs/openbot).
+[pingdotgg/t3code](https://github.com/pingdotgg/t3code),
+[nightly-labs/openbot](https://github.com/nightly-labs/openbot) or
+[herdrdev/herdr](https://github.com/herdrdev/herdr).
 
 This repository is MIT licensed. Each app's README credits the upstream icon and
 screenshots it uses.

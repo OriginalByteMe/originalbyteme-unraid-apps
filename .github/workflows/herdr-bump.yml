@@ -1,0 +1,70 @@
+name: herdr-bump
+
+# Every 6 hours, compares Herdr's latest stable release with the version
+# pinned in herdr/Dockerfile. When it is newer, opens a pull request that bumps
+# the pin, closes older bump pull requests, and runs herdr-build.yml on the branch,
+# since a pull request opened with the workflow token does not trigger it.
+# Closing a bump pull request skips that version. Merging one publishes the image.
+on:
+  schedule:
+    - cron: "47 */6 * * *"
+  workflow_dispatch:
+
+permissions:
+  actions: write
+  contents: write
+  pull-requests: write
+
+jobs:
+  bump:
+    # Forks cannot open pull requests with the workflow token or publish images.
+    if: github.repository_owner == 'OriginalByteMe'
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          pinned=$(sed -n 's/^ARG HERDR_VERSION=//p' herdr/Dockerfile)
+          # The latest release, which excludes nightlies and other prereleases.
+          latest=$(gh release view --repo herdrdev/herdr --json tagName -q .tagName)
+          latest=${latest#v}
+          if [ "$(printf '%s\n' "$pinned" "$latest" | sort -V | tail -n1)" = "$pinned" ]; then
+            echo "Herdr $pinned is the latest release"
+            # Publish main again if its version never reached Docker Hub, as when
+            # the publish after an automatic merge failed. Only a 404 counts: a
+            # rebuild pushes a new digest under the same tags, so a 429 or 5xx must
+            # not make Unraid offer everyone an update that isn't one.
+            tag_url="https://hub.docker.com/v2/repositories/originalbyteme/unraid-herdr/tags/$pinned"
+            if [ "$(curl -s -o /dev/null -w '%{http_code}' "$tag_url")" = 404 ]; then
+              echo "unraid-herdr:$pinned is not on Docker Hub; publishing main"
+              gh workflow run herdr-build.yml --ref main -f publish=true
+            fi
+            exit 0
+          fi
+          branch=herdr-$latest
+          if [ -n "$(gh pr list --head "$branch" --state all --json number -q '.[].number')" ]; then
+            echo "$branch already has a pull request"
+            exit 0
+          fi
+          sum=$(gh release view "v$latest" --repo herdrdev/herdr --json assets \
+            -q '.assets[] | select(.name == "herdr-linux-x86_64") | .digest')
+          sum=${sum#sha256:}
+          [ ${#sum} = 64 ] || { echo "no sha256 digest for herdr-linux-x86_64 in v$latest"; exit 1; }
+          sed -i -e "s/^ARG HERDR_VERSION=.*/ARG HERDR_VERSION=$latest/" \
+            -e "s/^ARG HERDR_SHA256=.*/ARG HERDR_SHA256=$sum/" herdr/Dockerfile
+          git switch -c "$branch"
+          git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' \
+            commit -qam "Herdr $latest"
+          git push -qf origin "$branch"
+          gh pr list --state open --json number,headRefName -q '.[] | select(.headRefName | test("^herdr-[0-9]")) | "\(.number) \(.headRefName)"' |
+            while read -r pr old; do
+              # Its held pull_request run would turn red when it closes; see herdr-build.yml.
+              gh run list --branch "$old" --event pull_request --status action_required --json databaseId -q '.[].databaseId' < /dev/null |
+                while read -r run; do gh run delete "$run" < /dev/null || true; done
+              gh pr close "$pr" --delete-branch --comment "Superseded by Herdr $latest." < /dev/null
+            done
+          gh pr create --head "$branch" --title "Herdr $latest" \
+            --body "Bumps Herdr from $pinned to $latest. Release notes: https://github.com/herdrdev/herdr/releases/tag/v$latest"
+          gh workflow run herdr-build.yml --ref "$branch"
