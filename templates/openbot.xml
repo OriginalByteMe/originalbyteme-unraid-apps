@@ -14,6 +14,9 @@
   <Category>AI: Tools:Utilities</Category>
   <Requires>An OpenBot account (free, signed in with an email code) and an account or API key for each AI provider you connect. For the Tailscale setting: Unraid 7 or later, and Tailscale on every device that connects.</Requires>
   <Changes>
+### 2026-11-24
+- The Console signs you in on first use: OpenBot, and GitHub through the GitHub CLI, now in the image. Run `onboard` to go through it again.
+
 ### 2026-11-15
 - First release, with OpenBot 0.71.0.
   </Changes>

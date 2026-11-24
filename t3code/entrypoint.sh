@@ -84,21 +84,6 @@ if ! grep -q '^nameserver 127\.0\.0\.11' /etc/resolv.conf &&
   log "tailnet names resolve through the host's Tailscale"
 fi
 
-# GIT_REPOS: owner/name (GitHub) or full clone URLs, cloned once into /projects.
-repo_dirs=()
-for repo in ${GIT_REPOS:-}; do
-  case "$repo" in
-    *://* | git@*) url=$repo ;;
-    *) url="https://github.com/$repo.git" ;;
-  esac
-  dir="/projects/$(basename "$repo" .git)"
-  if [ -d "$dir/.git" ] || as_t3 git clone --quiet "$url" "$dir"; then
-    repo_dirs+=("$dir")
-  else
-    log "WARNING: could not clone $repo"
-  fi
-done
-
 # AGENTS: agent CLIs, installed once into ~/.local so they persist and update
 # themselves. The names map T3 Code's providers that publish an official npm
 # package, plus Gemini (an ACP agent) and omp; any other word is taken as an
@@ -118,15 +103,7 @@ done
 # `docker run <image> <command>` runs that command as t3code instead of the server.
 [ $# -eq 0 ] || exec "${drop[@]}" "$@"
 
-# Add the cloned repos to T3's project list. This works before the server
-# starts; a repo that is already a project fails with ProjectAlreadyExistsError.
-for dir in "${repo_dirs[@]}"; do
-  if out=$(as_t3 "$t3" project add "$dir" 2>&1); then
-    log "added $dir to T3 Code"
-  elif ! grep -q ProjectAlreadyExistsError <<<"$out"; then
-    log "WARNING: could not add $dir to T3 Code: $(grep -m 1 ERROR <<<"$out" || tail -n 1 <<<"$out")"
-  fi
-done
+as_t3 onboard clone
 
 # VAULT_WEBDAV_URL: a Nextcloud folder, such as an Obsidian vault, kept in step
 # with ~/vault both ways. Agents and their Obsidian tools find it through

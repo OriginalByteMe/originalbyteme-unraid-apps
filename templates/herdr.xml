@@ -16,6 +16,7 @@
   <Changes>
 ### 2026-11-24
 - First release, with Herdr 0.9.5.
+- The Console signs you in on first use: GitHub by device code, the agents and an SSH key. Run `onboard` to go through it again.
   </Changes>
   <WebUI/>
   <TemplateURL>https://raw.githubusercontent.com/OriginalByteMe/originalbyteme-unraid-apps/main/templates/herdr.xml</TemplateURL>
@@ -27,8 +28,8 @@
   <Config Name="SSH port" Target="2222" Default="2222" Mode="tcp" Description="Port herdr --remote connects to over SSH, as user herdr." Type="Port" Display="always" Required="true" Mask="false">2222</Config>
   <Config Name="Data" Target="/home/herdr" Default="/mnt/user/appdata/herdr" Mode="rw" Description="Herdr's config, plugins and saved sessions, SSH host keys, agent logins and shell settings." Type="Path" Display="always" Required="true" Mask="false">/mnt/user/appdata/herdr</Config>
   <Config Name="Projects" Target="/projects" Default="/mnt/user/appdata/herdr/projects" Mode="rw" Description="Your repositories, at /projects in the container. Point it at any share." Type="Path" Display="always" Required="true" Mask="false">/mnt/user/appdata/herdr/projects</Config>
-  <Config Name="Authorized keys" Target="AUTHORIZED_KEYS" Default="" Mode="" Description="SSH public keys allowed to log in as herdr, one per line (the contents of ~/.ssh/id_ed25519.pub). Added to ~/.ssh/authorized_keys on each start. Password login is off." Type="Variable" Display="always" Required="true" Mask="false"/>
-  <Config Name="GitHub token" Target="GH_TOKEN" Default="" Mode="" Description="Optional. A GitHub token git and gh use for cloning, pushing and pull requests." Type="Variable" Display="always" Required="false" Mask="true"/>
+  <Config Name="Authorized keys" Target="AUTHORIZED_KEYS" Default="" Mode="" Description="SSH public keys allowed to log in as herdr, one per line (the contents of ~/.ssh/id_ed25519.pub). Added to ~/.ssh/authorized_keys on each start. Password login is off. Or leave it empty and paste a key in the Console, which asks for one on first use." Type="Variable" Display="always" Required="false" Mask="false"/>
+  <Config Name="GitHub token" Target="GH_TOKEN" Default="" Mode="" Description="Optional. A GitHub token git and gh use for cloning, pushing and pull requests. Leave it empty to sign in from the Console instead, which saves the login in the Data folder." Type="Variable" Display="always" Required="false" Mask="true"/>
   <Config Name="Repositories" Target="GIT_REPOS" Default="" Mode="" Description="Optional. Space-separated owner/name (GitHub) or clone URLs, each cloned once into /projects." Type="Variable" Display="always" Required="false" Mask="false"/>
   <Config Name="Agents" Target="AGENTS" Default="claude codex" Mode="" Description="Space-separated agent CLIs installed once into the Data folder: claude, codex, gemini, omp, opencode, pi, or any npm package name. Log in to each one once from a Herdr pane or the console." Type="Variable" Display="always" Required="false" Mask="false">claude codex</Config>
   <Config Name="Shell" Target="SHELL" Default="bash|zsh|fish" Mode="" Description="Shell for Herdr's panes and the console." Type="Variable" Display="always" Required="true" Mask="false">bash</Config>

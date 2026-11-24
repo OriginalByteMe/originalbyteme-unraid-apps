@@ -8,6 +8,7 @@ name: herdr-build
 on:
   push:
     paths: &paths
+      - common/**
       - herdr/**
       - templates/herdr.xml
       - ca_profile.xml
@@ -37,13 +38,13 @@ jobs:
 
       - name: Lint
         run: |
-          shellcheck herdr/entrypoint.sh
+          shellcheck herdr/entrypoint.sh common/onboard
           python3 -c 'import sys, xml.etree.ElementTree as E; [E.parse(f) for f in sys.argv[1:]]' templates/*.xml ca_profile.xml
 
       - name: Build
         run: |
           echo "VERSION=$(sed -n 's/^ARG HERDR_VERSION=//p' herdr/Dockerfile)" >> "$GITHUB_ENV"
-          docker build -t unraid-herdr:test herdr
+          docker build --build-context common=common -t unraid-herdr:test herdr
 
       - name: PUID and PGID move the herdr account
         run: |
@@ -78,6 +79,19 @@ jobs:
           if ssh -p 2222 -o BatchMode=yes -o UserKnownHostsFile=known_hosts herdr@127.0.0.1 true 2>/dev/null; then
             echo "login without the key succeeded"; exit 1
           fi
+
+      - name: The Console walks through the sign-ins on its first open only, then opens the shell
+        run: |
+          console() {
+            { printf 'n\n%.0s' $(seq 6); echo 'echo "shell as $(id -un)"; exit'; } |
+              script -qec 'docker exec -it herdr bash' /dev/null
+          }
+          console | tee first.out
+          console | tee second.out
+          grep -q '\[ \] GitHub' first.out
+          grep -q '\[x\] SSH keys' first.out
+          test "$(grep -c GitHub second.out)" = 0
+          grep -q 'shell as herdr' second.out
 
       - name: Merge automated bump PR
         if: github.event_name == 'workflow_dispatch' && startsWith(github.ref_name, 'herdr-')
