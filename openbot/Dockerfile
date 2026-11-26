@@ -3,7 +3,7 @@
 # entrypoint runs the image's own start script as the openbot account.
 
 # Pinned; .github/workflows/openbot-bump.yml opens a pull request for each release.
-ARG OPENBOT_VERSION=0.79.0
+ARG OPENBOT_VERSION=0.80.0
 FROM ghcr.io/nightly-labs/openbot:${OPENBOT_VERSION}
 
 USER root
