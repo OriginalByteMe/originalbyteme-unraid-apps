@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <Container version="2">
   <Name>Orca</Name>
-  <Repository>ghcr.io/originalbyteme/unraid-orca:latest</Repository>
-  <Registry>https://github.com/users/OriginalByteMe/packages/container/package/unraid-orca</Registry>
+  <Repository>originalbyteme/unraid-orca:latest</Repository>
+  <Registry>https://hub.docker.com/r/originalbyteme/unraid-orca</Registry>
   <Network>bridge</Network>
   <MyIP/>
   <Shell>bash</Shell>

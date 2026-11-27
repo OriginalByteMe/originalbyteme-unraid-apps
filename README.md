@@ -7,7 +7,7 @@ in `templates/`.
 
 | App | What it runs | Image | Setup guide |
 | --- | --- | --- | --- |
-| Orca | `orca serve`, the headless runtime of [Orca](https://www.onorca.dev), which runs coding agents side by side in their own git worktrees | `ghcr.io/originalbyteme/unraid-orca` | [orca/README.md](orca/README.md) |
+| Orca | `orca serve`, the headless runtime of [Orca](https://www.onorca.dev), which runs coding agents side by side in their own git worktrees | `originalbyteme/unraid-orca` | [orca/README.md](orca/README.md) |
 | OpenBot | The official server image of [OpenBot](https://openbot.run), a workspace where a team of AI agents (Claude Code, Codex, OpenCode, Pi, Hermes Agent or your own Ollama model) works on your server, reached from its desktop, web and phone apps | `originalbyteme/unraid-openbot` | [openbot/README.md](openbot/README.md) |
 | T3 Code | `t3 serve`, the headless server of [T3 Code](https://t3.codes), a control surface for Claude Code, Codex, Cursor, OpenCode and Pi | `originalbyteme/unraid-t3code` | [t3code/README.md](t3code/README.md) |
 | Herdr | `herdr server` behind SSH, the headless server of [Herdr](https://herdr.dev), a terminal workspace that keeps coding agents running and shows which one needs you; attach with `herdr --remote` | `originalbyteme/unraid-herdr` | [herdr/README.md](herdr/README.md) |
