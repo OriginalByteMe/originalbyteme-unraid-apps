@@ -8,7 +8,7 @@
   <Shell>bash</Shell>
   <Privileged>false</Privileged>
   <Support>https://github.com/OriginalByteMe/originalbyteme-unraid-apps/issues</Support>
-  <Project>https://github.com/OriginalByteMe/originalbyteme-unraid-apps/tree/main/orca</Project>
+  <Project>https://github.com/stablyai/orca</Project>
   <ReadMe>https://raw.githubusercontent.com/OriginalByteMe/originalbyteme-unraid-apps/main/orca/README.md</ReadMe>
   <Overview>Unofficial Unraid image for Orca, Stably's open-source app (github.com/stablyai/orca) for running coding agents such as Claude Code and Codex side by side, each in its own git worktree. This container runs orca serve, Orca's headless runtime, so the agents, worktrees and terminals live on your server while the Orca desktop app, the browser client or the Orca phone app connect to it. The pairing link is printed in this container's log. On top of Orca, the image installs agent CLIs by name, clones your GitHub repositories into a Projects folder you choose, gives the terminals bash, zsh (with optional Oh My Zsh) or fish, works with Unraid's Use Tailscale switch, and is rebuilt for every Orca release. Optional: map the Docker or libvirt socket so agents can run their own containers or VMs; either one gives the agents root-level control of this server. The README has a step-by-step setup guide and tips.</Overview>
   <Category>AI: Tools:Utilities</Category>

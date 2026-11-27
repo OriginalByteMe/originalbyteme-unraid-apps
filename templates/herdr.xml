@@ -8,7 +8,7 @@
   <Shell>bash</Shell>
   <Privileged>false</Privileged>
   <Support>https://github.com/OriginalByteMe/originalbyteme-unraid-apps/issues</Support>
-  <Project>https://github.com/OriginalByteMe/originalbyteme-unraid-apps/tree/main/herdr</Project>
+  <Project>https://github.com/herdrdev/herdr</Project>
   <ReadMe>https://raw.githubusercontent.com/OriginalByteMe/originalbyteme-unraid-apps/main/herdr/README.md</ReadMe>
   <Overview>Unofficial Unraid image for Herdr (herdr.dev, github.com/herdrdev/herdr), the runtime your coding agents live on: a terminal workspace that keeps Claude Code, Codex, OpenCode and other agents running in a background server, marks each pane working, blocked or idle, and is customised through config.toml and plugins. This container runs Herdr's headless server on your Unraid box behind an SSH server, so you attach from any machine with herdr --remote, or add it as a saved machine, and your agents keep working when you disconnect. The image installs agent CLIs by name, clones your GitHub repositories into a Projects folder, gives the terminals bash, zsh or fish, and works with Unraid's Use Tailscale switch. The first time you open the Console, it walks you through signing in to GitHub and the agents and adding an SSH key; run onboard to do it again.</Overview>
   <Category>AI: Tools:Utilities</Category>
