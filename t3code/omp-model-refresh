@@ -1,0 +1,30 @@
+#!/bin/bash
+# Asks omp to re-read its providers' model lists every OMP_MODEL_REFRESH_INTERVAL
+# seconds (default 600). omp keeps a model list for two hours and only checks on
+# start-up, so a model downloaded into Unsloth Studio would not show up in omp or
+# T3 Code for hours. OMP_MODEL_REFRESH names what to refresh, separated by
+# spaces or commas: `profile` or `profile:provider`, such as `local:unsloth`, and
+# `default` for omp's own profile. The entrypoint starts it in the background as
+# t3code when OMP_MODEL_REFRESH is set.
+set -uo pipefail
+
+log() { echo "[unraid-t3code] omp model refresh: $*"; }
+
+targets=${OMP_MODEL_REFRESH//,/ }
+interval=${OMP_MODEL_REFRESH_INTERVAL:-600}
+
+log "refreshing $targets every ${interval}s"
+while :; do
+  for word in $targets; do
+    profile=${word%%:*}
+    provider=
+    [ "$profile" = "$word" ] || provider=${word#*:}
+    args=()
+    [ "$profile" = default ] || args=(--profile "$profile")
+    args+=(models refresh)
+    [ -z "$provider" ] || args+=("$provider")
+    # A successful refresh prints the model table, which would only fill the log.
+    omp "${args[@]}" >/dev/null 2>&1 || log "$word exited $?; trying again in ${interval}s"
+  done
+  sleep "$interval"
+done
