@@ -95,6 +95,8 @@ servers need matching versions to talk to each other.
 | Docker socket | `/var/run/docker.sock` | Off unless you fill it in. See below |
 | libvirt socket | `/var/run/libvirt/libvirt-sock` | Off unless you fill it in. See below |
 | Extra serve arguments | `ORCA_EXTRA_ARGS` | Extra flags for `orca serve` |
+| Serve runtime | `ORCA_SERVE_RUNTIME` | Leave empty for `orcad` (default), or set to `electron` to enable Orca's built-in browser in the web client (uses more memory) |
+| Keyring password | `KEYRING_PASSWORD` | Optional password for the container's GNOME keyring (stored in Data), used by the `electron` runtime to save Orca sign-ins and plugin secrets |
 | PUID / PGID | `PUID`, `PGID` | Account the agents run as, 99:100 by default like other Unraid apps |
 
 The agents run as that unprivileged account. The Console button drops you into

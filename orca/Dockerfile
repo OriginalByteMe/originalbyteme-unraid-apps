@@ -30,7 +30,7 @@ RUN set -eux; \
       libgtk-3-0t64 libnss3 libatk1.0-0t64 libatk-bridge2.0-0t64 libgbm1 libasound2t64 \
       libxtst6 libcups2t64 libdrm2 libxkbcommon0 libpango-1.0-0 libcairo2 libatspi2.0-0t64 \
       libxcomposite1 libxdamage1 libxfixes3 libxrandr2 libxrender1 libx11-xcb1 \
-      libxcb-dri3-0 libxss1; \
+      libxcb-dri3-0 libxss1 dbus gnome-keyring; \
     rm -rf /tmp/orca.deb /var/lib/apt/lists/*; \
     orca-ide --version
 
@@ -71,6 +71,9 @@ ENV HOME=/home/orca \
     NPM_CONFIG_PREFIX=/home/orca/.local \
     LIBGL_ALWAYS_SOFTWARE=1 \
     ORCA_ELECTRON_NO_SANDBOX=1 \
+    XDG_CURRENT_DESKTOP=GNOME \
+    XDG_RUNTIME_DIR=/tmp/runtime-orca \
+    DBUS_SESSION_BUS_ADDRESS=unix:path=/tmp/runtime-orca/bus \
     PUID=99 \
     PGID=100
 

@@ -129,6 +129,16 @@ register_repos() {
 }
 [ ${#repo_dirs[@]} -eq 0 ] || register_repos &
 
+# Orca's Electron runtime (ORCA_SERVE_RUNTIME=electron) refuses to store
+# sign-ins and plugin secrets without an OS keyring. Start a session D-Bus and
+# unlocked GNOME keyring for the orca user; the keyring file lives in
+# ~/.local/share/keyrings (in Data).
+install -d -m 0700 -o "$PUID" -g "$PGID" "$XDG_RUNTIME_DIR"
+rm -f "$XDG_RUNTIME_DIR/bus"
+as_orca dbus-daemon --session --address="$DBUS_SESSION_BUS_ADDRESS" --fork --nopidfile
+printf '%s' "${KEYRING_PASSWORD:-orca-keyring}" | as_orca gnome-keyring-daemon --unlock --components=secrets >/dev/null
+unset KEYRING_PASSWORD
+
 log "starting orca serve; clients dial $addr:6768"
 # shellcheck disable=SC2086 # ORCA_EXTRA_ARGS is a list of flags
 exec "${drop[@]}" \
