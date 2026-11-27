@@ -176,7 +176,7 @@ device on your tailnet can pair.
 Unraid shows an update on the Docker tab when a new image is out, which happens
 when a pull request bumping Orca's version is merged here. To stay on one
 version, change the Repository field to a version tag such as
-`ghcr.io/originalbyteme/unraid-orca:1.4.240`. Update the Orca desktop and phone
+`originalbyteme/unraid-orca:1.4.279`. Update the Orca desktop and phone
 apps at about the same time; a client and server too far apart report an
 incompatible protocol version.
 
