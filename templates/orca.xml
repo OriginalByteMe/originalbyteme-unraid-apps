@@ -14,6 +14,9 @@
   <Category>AI: Tools:Utilities</Category>
   <Requires>An Orca client to pair with (desktop app, browser client or phone app) on a version close to this image's, and an account or API key for each agent you install.</Requires>
   <Changes>
+### 2026-11-27
+- New **Serve runtime** setting: set it to `electron` to use Orca's built-in browser in the web client, for example to sign a bot in to GitHub. The container now starts an unlocked GNOME keyring, kept in the Data folder, so that runtime can save Orca sign-ins and plugin secrets. The optional **Keyring password** protects it.
+
 ### 2026-10-26
 - Orca 1.4.241.
 
@@ -50,7 +53,7 @@
   <Config Name="libvirt socket" Target="/var/run/libvirt/libvirt-sock" Default="" Mode="rw" Description="Optional. Enter /var/run/libvirt/libvirt-sock to let agents start and manage VMs with virsh. This gives the agents root-level control of this server." Type="Path" Display="advanced" Required="false" Mask="false"/>
   <Config Name="Extra serve arguments" Target="ORCA_EXTRA_ARGS" Default="" Mode="" Description="Optional flags for orca serve, for example --mobile-pairing to print a phone pairing link." Type="Variable" Display="advanced" Required="false" Mask="false"/>
   <Config Name="Serve runtime" Target="ORCA_SERVE_RUNTIME" Default="|electron" Mode="" Description="Optional. Leave empty for the default orcad runtime, or set to electron to enable Orca's built-in browser in the web client (uses more memory)." Type="Variable" Display="advanced" Required="false" Mask="false"/>
-  <Config Name="Keyring password" Target="KEYRING_PASSWORD" Default="" Mode="" Description="Optional password for the container's GNOME keyring, used by the Electron runtime to store Orca sign-ins and plugin secrets in the Data folder." Type="Variable" Display="advanced" Required="false" Mask="true"/>
+  <Config Name="Keyring password" Target="KEYRING_PASSWORD" Default="" Mode="" Description="Optional password for the container's GNOME keyring, used by the Electron runtime to store Orca sign-ins and plugin secrets in the Data folder. Set it before the first start: changing it later leaves the existing keyring locked and Orca stops saving sign-ins." Type="Variable" Display="advanced" Required="false" Mask="true"/>
   <Config Name="PUID" Target="PUID" Default="99" Mode="" Description="User ID the agents run as." Type="Variable" Display="advanced" Required="true" Mask="false">99</Config>
   <Config Name="PGID" Target="PGID" Default="100" Mode="" Description="Group ID the agents run as." Type="Variable" Display="advanced" Required="true" Mask="false">100</Config>
 </Container>

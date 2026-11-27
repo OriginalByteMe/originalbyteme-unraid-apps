@@ -91,6 +91,37 @@ jobs:
           done
           grep -o 'shell=[^ ]*zsh omz=/home/orca/.oh-my-zsh' term.json || { cat term.json; exit 1; }
 
+      - name: Electron serve seals its secrets in a keyring that survives a restart and a new container
+        run: |
+          start() {
+            docker run -d --name orca-electron -e ORCA_PAIRING_ADDRESS=127.0.0.1 -e ORCA_SERVE_RUNTIME=electron \
+              -e KEYRING_PASSWORD=ci-keyring -v "$PWD/electron-data:/home/orca" unraid-orca:test
+          }
+          storage() { docker exec -u orca orca-electron orca-ide auth status --json 2>/dev/null | jq -r '.result.storage.kind'; }
+          up() {
+            for _ in $(seq 60); do [ "$(storage)" = os-keychain ] && return; sleep 2; done
+            docker logs orca-electron 2>&1 | grep -v -e 'pairing=' -e 'code=' || true
+            return 1
+          }
+          secrets() { docker exec -u orca orca-electron gdbus call --session --dest org.freedesktop.secrets "$@"; }
+          created() {
+            item=$(secrets --object-path /org/freedesktop/secrets --method org.freedesktop.Secret.Service.SearchItems \
+              "{'xdg:schema': 'chrome_libsecret_os_crypt_password_v2'}" | grep -o "/org/freedesktop/secrets/collection/[^']*" | head -n 1)
+            test -n "$item"
+            secrets --object-path "$item" --method org.freedesktop.DBus.Properties.Get org.freedesktop.Secret.Item Created
+          }
+          start
+          up
+          first=$(created)
+          echo "key created: $first"
+          docker restart orca-electron
+          up
+          test "$(created)" = "$first"
+          docker rm -f orca-electron
+          start
+          up
+          test "$(created)" = "$first"
+
       - name: Merge automated bump PR
         if: github.event_name == 'workflow_dispatch' && startsWith(github.ref_name, 'orca-')
         env:

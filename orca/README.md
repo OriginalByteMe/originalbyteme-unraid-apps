@@ -102,6 +102,12 @@ servers need matching versions to talk to each other.
 The agents run as that unprivileged account. The Console button drops you into
 its shell too; use `sh` instead of `bash` if you need root inside the container.
 
+The keyring is created on the first start with the Keyring password (`orca-keyring`
+when it is empty) and kept in `.local/share/keyrings` in the Data folder. Set the
+password before that first start: changing it later leaves the keyring locked, and
+Orca stops saving sign-ins. Set the old password again, or delete that folder to
+begin a new keyring (what it holds, such as saved sign-ins, is lost).
+
 ## Agents
 
 **Agents** takes names from
